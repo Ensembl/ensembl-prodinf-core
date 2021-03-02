@@ -1,4 +1,8 @@
-# README
+# ENSEMBL PRODUCTION INFRASTRUCTURE CORE PACKAGE
 
-This is sample readme file
+Contain shared libraries used across other production team manages python packages
+
+
+
+
 
