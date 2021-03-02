@@ -13,7 +13,7 @@
 import os
 from urllib.parse import urlparse
 from sqlalchemy import create_engine, text
-from ensembl.production.server_utils import get_file_sizes
+from ensembl.production.core.server_utils import get_file_sizes
 from sqlalchemy.engine.url import make_url
 
 

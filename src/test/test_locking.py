@@ -15,7 +15,7 @@ import os
 import unittest
 from tempfile import mkstemp
 
-from ensembl.production.resource_lock import ResourceLocker, LockException
+from ensembl.production.core.resource_lock import ResourceLocker, LockException
 
 logging.basicConfig()
 

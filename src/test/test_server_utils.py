@@ -14,7 +14,7 @@
 import logging
 import unittest
 
-import ensembl.production.server_utils as su
+import ensembl.production.core.server_utils as su
 
 logging.basicConfig()
 

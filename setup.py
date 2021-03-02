@@ -31,7 +31,7 @@ setup(
     name='ensembl-prodinf-core',
     version='1.0.0',
     namespace_packages=['ensembl'],
-    packages=find_namespace_packages(where='src', include=['ensembl.*']),
+    packages=find_namespace_packages(where='src', include=['ensembl.production.core.*']),
     package_dir={'': 'src'},
     url='https://github.com/Ensembl/ensembl-prodinf-core',
     license='APACHE 2.0',

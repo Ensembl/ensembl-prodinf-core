@@ -15,7 +15,7 @@ import os
 import unittest
 from shutil import copy2
 
-from ensembl.production.models.hive import HiveInstance
+from ensembl.production.core.models.hive import HiveInstance
 
 dirpath = os.path.dirname(os.path.abspath(__file__))
 

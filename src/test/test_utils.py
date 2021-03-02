@@ -13,7 +13,7 @@
 import logging
 import unittest
 
-from ensembl.production.perl_utils import dict_to_perl_string, perl_string_to_python
+from ensembl.production.core.perl_utils import dict_to_perl_string, perl_string_to_python
 
 logging.basicConfig()
 

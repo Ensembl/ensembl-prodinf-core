@@ -20,7 +20,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 
-from ensembl.production.perl_utils import dict_to_perl_string, perl_string_to_python
+from ensembl.production.core.perl_utils import dict_to_perl_string, perl_string_to_python
 
 __all__ = ['Result', 'LogMessage', 'Job', 'HiveInstance', 'Analysis']
 
