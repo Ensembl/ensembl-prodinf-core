@@ -1,17 +1,31 @@
+# .. See the NOTICE file distributed with this work for additional information
+#    regarding copyright ownership.
+#    Licensed under the Apache License, Version 2.0 (the "License");
+#    you may not use this file except in compliance with the License.
+#    You may obtain a copy of the License at
+#        http://www.apache.org/licenses/LICENSE-2.0
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS,
+#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    See the License for the specific language governing permissions and
+#    limitations under the License.
+
 import json
+import logging
 import re
 import time
 
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, func
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 
-from ensembl_prodinf.utils import dict_to_perl_string, perl_string_to_python
+from ensembl.production.perl_utils import dict_to_perl_string, perl_string_to_python
 
-
-__all__ = [ 'Result', 'LogMessage', 'Job', 'HiveInstance', 'Analysis' ]
+__all__ = ['Result', 'LogMessage', 'Job', 'HiveInstance', 'Analysis']
 
 Base = declarative_base()
+logger = logging.getLogger(__name__)
 
 
 class Analysis(Base):
@@ -154,7 +168,7 @@ class HiveInstance:
         s = Session()
         try:
             job = s.query(Job).filter(Job.job_id == id).first()
-            if (job == None):
+            if job is None:
                 raise ValueError("Job %s not found" % id)
             job.result
             return job
@@ -191,11 +205,11 @@ class HiveInstance:
         """ Retrieve a job failure message or job child if exist and if child flag turned on"""
         s = Session()
         job = self.get_job_by_id(id)
-        if job == None:
+        if job is None:
             raise ValueError("Job %s not found" % id)
         if child:
             child_job = self.get_job_child(job)
-            if child_job != None:
+            if child_job is not None:
                 try:
                     return s.query(LogMessage).filter(LogMessage.job_id == child_job.job_id).order_by(
                         LogMessage.log_message_id.desc()).first()
@@ -240,7 +254,7 @@ class HiveInstance:
 
         input_data['timestamp'] = time.time()
         analysis = self.get_analysis_by_name(analysis_name)
-        if analysis == None:
+        if analysis is None:
             raise ValueError("Analysis %s not found" % analysis_name)
         s = Session()
         try:
@@ -248,10 +262,11 @@ class HiveInstance:
             s.add(job)
             s.commit()
             # force load of object
+            # FIXME any param in connexion should force the loading.
             job.analysis
             job.result
             return job
-        except:
+        except SQLAlchemyError:
             s.rollback()
             raise
         finally:
@@ -272,8 +287,8 @@ class HiveInstance:
         """ Get the job semaphore count if exist"""
         s = Session()
         try:
-            Semaphore_data = s.query(Semaphore).filter(Semaphore.dependent_job_id == semaphore_job_id).first()
-            return Semaphore_data
+            semaphore_data = s.query(Semaphore).filter(Semaphore.dependent_job_id == semaphore_job_id).first()
+            return semaphore_data
         finally:
             s.close()
 
@@ -282,17 +297,16 @@ class HiveInstance:
         """ Get result for a given job id. If child flag is turned on and job child exist, get result for child job"""
 
         job = self.get_job_by_id(id)
-        if job == None:
+        if job is None:
             raise ValueError("Job %s not found" % id)
         if child:
             child_job = self.get_job_child(job)
-            if child_job != None:
+            if child_job is not None:
                 return self.get_result_for_job(child_job, progress=progress)
             else:
                 return self.get_result_for_job(job, progress=progress)
         else:
             return self.get_result_for_job(job, progress=progress)
-
 
     def get_result_for_job(self, job, progress=False):
 
@@ -306,7 +320,7 @@ class HiveInstance:
                 result['input'] = perl_string_to_python(job_input.data)
             else:
                 result['input'] = perl_string_to_python(job.input_id)
-            if job.status == 'DONE' and job.result != None:
+            if job.status == 'DONE' and job.result is not None:
                 result['status'] = 'complete'
                 result['when_completed'] = job.when_completed
                 result['output'] = job.result.output_dict()
@@ -316,8 +330,9 @@ class HiveInstance:
                     result['progress'] = self.get_jobs_progress(job)
         except ValueError as e:
             raise ValueError('Cannot retrieve results for job: {}'.format(job.job_id)) from e
+        except SQLAlchemyError as e:
+            raise ValueError('DB error for job: {}'.format(job.job_id)) from e
         return result
-
 
     def get_last_job_progress(self, job):
         """ Return last job progress line if exists, else None """
@@ -339,7 +354,7 @@ class HiveInstance:
         try:
             last_job_progress_msg = s.query(JobProgress).filter(JobProgress.job_id == job.job_id).order_by(
                 JobProgress.job_progress_id.desc()).first()
-            if last_job_progress_msg != None:
+            if last_job_progress_msg is not None:
                 total = 10
                 complete = s.query(JobProgress).filter(JobProgress.job_id == job.job_id).count()
                 return {"complete": complete, "total": total, "message": last_job_progress_msg.message}
@@ -361,16 +376,16 @@ class HiveInstance:
 
         """ Recursively check all children of a job """
         # check for semaphores
-        Semaphore_data = None
+        semaphore_data = None
         try:
             s = Session()
             semaphored_job = s.query(Job).filter(Job.prev_job_id == job.job_id and job.status == 'SEMAPHORED').first()
-            if semaphored_job != None:
-                Semaphore_data = self.get_semaphore_data(semaphored_job.job_id)
+            if semaphored_job is not None:
+                semaphore_data = self.get_semaphore_data(semaphored_job.job_id)
         finally:
             s.close()
-        if Semaphore_data != None and Semaphore_data.local_jobs_counter > 0:
-            return self.check_semaphores_for_job(Semaphore_data)
+        if semaphore_data is not None and semaphore_data.local_jobs_counter > 0:
+            return self.check_semaphores_for_job(semaphore_data)
         else:
             if job.status == 'FAILED':
                 return 'failed'
@@ -420,17 +435,17 @@ class HiveInstance:
         """
         s = Session()
         try:
-            semaphored_job = s.query(Job).filter(Job.prev_job_id == job.job_id,job.status == 'SEMAPHORED').first()
-            Semaphore_data = self.get_semaphore_data(semaphored_job.job_id)
-            if status == None:
-                return s.query(Job).filter(Semaphore_data.semaphore_id == Job.controlled_semaphore_id).all()
+            semaphored_job = s.query(Job).filter(Job.prev_job_id == job.job_id, job.status == 'SEMAPHORED').first()
+            semaphore_data = self.get_semaphore_data(semaphored_job.job_id)
+            if status is None:
+                return s.query(Job).filter(semaphore_data.semaphore_id == Job.controlled_semaphore_id).all()
             else:
-                return s.query(Job).filter(Semaphore_data.semaphore_id == Job.controlled_semaphore_id,
+                return s.query(Job).filter(semaphore_data.semaphore_id == Job.controlled_semaphore_id,
                                            Job.status == status).all()
         finally:
             s.close()
 
-    def check_semaphores_for_job(self, Semaphore_data):
+    def check_semaphores_for_job(self, semaphore_data):
 
         """ Find all jobs that are semaphored children of the nominated job, and check whether they have completed """
 
@@ -438,7 +453,7 @@ class HiveInstance:
         try:
             status = 'complete'
             jobs = dict(s.query(Job.status, func.count(Job.status)).filter(
-                Semaphore_data.semaphore_id == Job.controlled_semaphore_id).group_by(Job.status).all())
+                semaphore_data.semaphore_id == Job.controlled_semaphore_id).group_by(Job.status).all())
             if 'FAILED' in jobs and jobs['FAILED'] > 0:
                 status = 'failed'
             elif ('READY' in jobs and jobs['READY'] > 0) or ('RUN' in jobs and jobs['RUN'] > 0):
@@ -455,7 +470,7 @@ class HiveInstance:
             jobs = s.query(Job).join(Analysis).filter(Analysis.logic_name == analysis_name).all()
             if child:
                 return list(map(lambda job: self.get_result_for_job(self.get_job_child(job)) if (
-                        self.get_job_child(job) != None) else self.get_result_for_job(job), jobs))
+                        self.get_job_child(job) is not None) else self.get_result_for_job(job), jobs))
             else:
                 return list(map(lambda job: self.get_result_for_job(job), jobs))
         finally:
@@ -469,40 +484,40 @@ class HiveInstance:
         parent_job = self.get_job_parent(job)
         if child:
             child_job = self.get_job_child(job)
-            if child_job != None:
+            if child_job is not None:
                 s = Session()
                 try:
-                    print("Deleting children job " + str(child_job.job_id))
-                    if (child_job.result != None):
+                    logger.debug("Deleting children job %s " + child_job.job_id)
+                    if child_job.result is not None:
                         s.delete(child_job.result)
                     s.delete(child_job)
                     s.commit()
-                except:
+                except SQLAlchemyError:
                     s.rollback()
                     raise
                 finally:
                     s.close()
-        if parent_job != None:
+        if parent_job is not None:
             s = Session()
             try:
-                print("Deleting parent job " + str(parent_job.job_id))
-                if (parent_job.result != None):
+                logger.debug("Deleting parent job %s " + parent_job.job_id)
+                if parent_job.result is not None:
                     s.delete(parent_job.result)
                 s.delete(parent_job)
                 s.commit()
-            except:
+            except SQLAlchemyError:
                 s.rollback()
                 raise
             finally:
                 s.close()
         try:
             s = Session()
-            print("Deleting job " + str(job.job_id))
-            if (job.result != None):
+            logger.debug("Deleting job %s " + job.job_id)
+            if job.result is not None:
                 s.delete(job.result)
             s.delete(job)
             s.commit()
-        except:
+        except SQLAlchemyError:
             s.rollback()
             raise
         finally:

@@ -1,9 +1,23 @@
-import ensembl_prodinf.server_utils as su
+# .. See the NOTICE file distributed with this work for additional information
+#    regarding copyright ownership.
+#    Licensed under the Apache License, Version 2.0 (the "License");
+#    you may not use this file except in compliance with the License.
+#    You may obtain a copy of the License at
+#        http://www.apache.org/licenses/LICENSE-2.0
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS,
+#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    See the License for the specific language governing permissions and
+#    limitations under the License.
 
-import unittest
+
 import logging
+import unittest
+
+import ensembl.production.server_utils as su
 
 logging.basicConfig()
+
 
 class ServerTest(unittest.TestCase):
 
@@ -17,8 +31,8 @@ class ServerTest(unittest.TestCase):
         self.assertTrue("memory_total_m" in status)
         self.assertTrue("memory_used_m" in status)
         self.assertTrue("memory_available_m" in status)
-        self.assertTrue(status["memory_used_pct"]>=0)
-        self.assertTrue(status["memory_used_pct"]<=100)
+        self.assertTrue(status["memory_used_pct"] >= 0)
+        self.assertTrue(status["memory_used_pct"] <= 100)
 
     def test_status_dir(self):
         status = su.get_status(dir_name="/")
@@ -30,13 +44,13 @@ class ServerTest(unittest.TestCase):
         self.assertTrue("memory_total_m" in status)
         self.assertTrue("memory_used_m" in status)
         self.assertTrue("memory_available_m" in status)
-        self.assertTrue(status["memory_used_pct"]>=0)
-        self.assertTrue(status["memory_used_pct"]<=100)
+        self.assertTrue(status["memory_used_pct"] >= 0)
+        self.assertTrue(status["memory_used_pct"] <= 100)
         self.assertTrue("disk_total_g" in status)
         self.assertTrue("disk_used_g" in status)
         self.assertTrue("disk_available_g" in status)
-        self.assertTrue(status["disk_used_pct"]>=0)
-        self.assertTrue(status["disk_used_pct"]<=100)
+        self.assertTrue(status["disk_used_pct"] >= 0)
+        self.assertTrue(status["disk_used_pct"] <= 100)
 
 
 class AssertTest(unittest.TestCase):

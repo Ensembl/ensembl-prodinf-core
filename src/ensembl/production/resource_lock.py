@@ -1,21 +1,41 @@
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey, Enum
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
-from sqlalchemy.exc import IntegrityError
+# .. See the NOTICE file distributed with this work for additional information
+#    regarding copyright ownership.
+#    Licensed under the Apache License, Version 2.0 (the "License");
+#    you may not use this file except in compliance with the License.
+#    You may obtain a copy of the License at
+#        http://www.apache.org/licenses/LICENSE-2.0
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS,
+#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    See the License for the specific language governing permissions and
+#    limitations under the License.
+#
+
 import datetime
 import logging
+
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey, Enum
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, relationship
+
 logging.basicConfig()
+
+
 def lazy_load(obj):
     """
     Helper method to call all attribs on an obj to load them before detaching from the session
     """
     [getattr(obj, method) for method in dir(obj) if callable(getattr(obj, method))]
 
+
 Base = declarative_base()
+
 
 class LockEnum(Enum):
     read = 1
     write = 2
+
 
 class ResourceLock(Base):
     """Class respresenting a lock obtained by a client on a particular resource. Locks can include read or write.
@@ -38,10 +58,13 @@ class ResourceLock(Base):
     resource = relationship("Resource")
 
     def __repr__(self):
-        return "<ResourceLock(resource_lock_id={}, lock_type='{}', client='{}', resource='{}')>".format(self.resource_lock_id, self.lock_type, self.client.name, self.resource.uri)
+        return "<ResourceLock(resource_lock_id={}, lock_type='{}', client='{}', resource='{}')>".format(
+            self.resource_lock_id, self.lock_type, self.client.name, self.resource.uri)
 
     def to_dict(self):
-        return {"resource_lock_id": self.resource_lock_id, "client":self.client.to_dict(), "resource":self.resource.to_dict(), "lock_type":self.lock_type, "created":self.created}
+        return {"resource_lock_id": self.resource_lock_id, "client": self.client.to_dict(),
+                "resource": self.resource.to_dict(), "lock_type": self.lock_type, "created": self.created}
+
 
 class Resource(Base):
     """Class respresenting an abstract resource like a database or a file
@@ -60,7 +83,7 @@ class Resource(Base):
             self.resource_id, self.uri)
 
     def to_dict(self):
-        return {"resource_id": self.resource_id, "uri":self.uri}
+        return {"resource_id": self.resource_id, "uri": self.uri}
 
 
 class Client(Base):
@@ -82,15 +105,17 @@ class Client(Base):
             self.client_id, self.name)
 
     def to_dict(self):
-        return {"client_id": self.client_id, "name":self.name}
+        return {"client_id": self.client_id, "name": self.name}
 
 
 class LockException(Exception):
     pass
 
-Session = sessionmaker()
-class ResourceLocker:
 
+Session = sessionmaker()
+
+
+class ResourceLocker:
     """Utility class for the locking and unlocking of resources
     """
 
@@ -205,7 +230,6 @@ class ResourceLocker:
         finally:
             session.close()
 
-
     def lock(self, client_name, resource_uri, lock_type):
         """Lock the specified resource.
         Arguments:
@@ -224,21 +248,22 @@ class ResourceLocker:
         resource = self.get_resource(resource_uri, session)
         try:
             self._lock_db(session)
-            if(lock_type == 'read'):
+            if (lock_type == 'read'):
                 # can only create if no write locks found on resource
                 n_locks = session.query(ResourceLock).filter_by(resource=resource, lock_type='write').count()
-                if(n_locks>0):
-                    raise LockException("Write lock found on {} - cannot lock for reading {}".format(str(n_locks), resource_uri))
+                if (n_locks > 0):
+                    raise LockException(
+                        "Write lock found on {} - cannot lock for reading {}".format(str(n_locks), resource_uri))
                 else:
                     lock = ResourceLock(resource=resource, client=client, lock_type=lock_type)
                     session.add(lock)
                     session.commit()
                     lazy_load(lock)
                     return lock
-            elif(lock_type == 'write'):
+            elif (lock_type == 'write'):
                 # can only create if no other locks found on resource
                 n_locks = session.query(ResourceLock).filter_by(resource=resource).count()
-                if(n_locks>0):
+                if (n_locks > 0):
                     raise LockException("{} lock(s) found on {}".format(str(n_locks), resource_uri))
                 else:
                     lock = ResourceLock(resource=resource, client=client, lock_type=lock_type)
@@ -263,12 +288,12 @@ class ResourceLocker:
           ValueError if lock not found
         """
         session = Session()
-        if(type(lock) is int):
+        if (type(lock) is int):
             lock = session.query(ResourceLock).filter_by(resource_lock_id=lock).first()
             if lock == None:
-                raise ValueError("No lock found for ID "+str(lock))
+                raise ValueError("No lock found for ID " + str(lock))
         try:
-            logging.info("Deleting lock "+str(lock))
+            logging.info("Deleting lock " + str(lock))
             self._lock_db(session)
             session.delete(lock)
             session.commit()
@@ -302,16 +327,16 @@ class ResourceLocker:
           ValueError if lock not found
         """
         session = Session()
-        if(type(client) is int):
+        if (type(client) is int):
             client = session.query(Client).filter_by(client_id=client).first()
             if client == None:
                 raise ValueError("No client found for ID ")
-        if(type(client) is str):
+        if (type(client) is str):
             client = session.query(Client).filter_by(name=client).first()
             if client == None:
                 raise ValueError("No client found for name")
         try:
-            logging.info("Deleting client "+str(client))
+            logging.info("Deleting client " + str(client))
             self._lock_db(session)
             session.delete(client)
             session.commit()
@@ -345,16 +370,16 @@ class ResourceLocker:
           ValueError if lock not found
         """
         session = Session()
-        if(type(resource) is int):
+        if (type(resource) is int):
             resource = session.query(Resource).filter_by(resource_id=resource).first()
             if resource == None:
                 raise ValueError("No client found for ID ")
-        if(type(resource) is str):
+        if (type(resource) is str):
             resource = session.query(Resource).filter_by(uri=resource).first()
             if resource == None:
                 raise ValueError("No client found for name")
         try:
-            logging.info("Deleting resource "+str(resource))
+            logging.info("Deleting resource " + str(resource))
             self._lock_db(session)
             session.delete(resource)
             session.commit()
@@ -365,12 +390,10 @@ class ResourceLocker:
 
     def _lock_db(self, session):
         """Utility to obtain a lock over the MySQL tables to ensure no race condition"""
-        if(self.url.startswith('mysql')):
+        if (self.url.startswith('mysql')):
             session.execute('lock table client write, resource write, resource_lock write')
 
     def _unlock_db(self, session):
         """Utility to obtain release a lock over the MySQL tables"""
-        if(self.url.startswith('mysql')):
+        if (self.url.startswith('mysql')):
             session.execute('unlock tables')
-
-

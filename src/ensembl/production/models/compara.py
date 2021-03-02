@@ -1,22 +1,23 @@
-"""
-.. See the NOTICE file distributed with this work for additional information
-   regarding copyright ownership.
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-       http://www.apache.org/licenses/LICENSE-2.0
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-"""
+# .. See the NOTICE file distributed with this work for additional information
+#    regarding copyright ownership.
+#    Licensed under the Apache License, Version 2.0 (the "License");
+#    you may not use this file except in compliance with the License.
+#    You may obtain a copy of the License at
+#        http://www.apache.org/licenses/LICENSE-2.0
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS,
+#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    See the License for the specific language governing permissions and
+#    limitations under the License.
+
 from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+
 Base = declarative_base()
 
 __all__ = ['ComparaInstance', 'check_grch37', 'get_release_compara']
+
 
 class Meta(Base):
     __tablename__ = 'meta'
@@ -41,8 +42,8 @@ class GenomeDb(Base):
         return "<GenomeDb(genome_db_id='%s',assembly='%s', name='%s')>" % (
             self.genome_db_id, self.assembly, self.name)
 
-Session = sessionmaker()
 
+Session = sessionmaker()
 
 
 class ComparaInstance:
@@ -60,7 +61,7 @@ class ComparaInstance:
         finally:
             s.close()
 
-    def get_compara_species_assembly(self,species):
+    def get_compara_species_assembly(self, species):
         s = Session()
         try:
             genome_db = s.query(GenomeDb).filter(GenomeDb.name == species).first()
@@ -81,9 +82,11 @@ class ComparaInstance:
             self.__release = self.__get_meta_value('schema_version')
         return self.__release
 
+
 def check_grch37(uri, species):
     inst = ComparaInstance(uri)
     return inst.is_GRCh37(species)
+
 
 def get_release_compara(src_uri):
     inst = ComparaInstance(src_uri)

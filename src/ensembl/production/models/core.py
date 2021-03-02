@@ -1,22 +1,23 @@
-"""
-.. See the NOTICE file distributed with this work for additional information
-   regarding copyright ownership.
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-       http://www.apache.org/licenses/LICENSE-2.0
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-"""
+# .. See the NOTICE file distributed with this work for additional information
+#    regarding copyright ownership.
+#    Licensed under the Apache License, Version 2.0 (the "License");
+#    you may not use this file except in compliance with the License.
+#    You may obtain a copy of the License at
+#        http://www.apache.org/licenses/LICENSE-2.0
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS,
+#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    See the License for the specific language governing permissions and
+#    limitations under the License.
+
 from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+
 Base = declarative_base()
 
 __all__ = ['CoreInstance', 'get_division', 'get_release']
+
 
 class Meta(Base):
     __tablename__ = 'meta'
@@ -33,9 +34,7 @@ class Meta(Base):
 Session = sessionmaker()
 
 
-
 class CoreInstance:
-
     __division = None
     __release = None
 
@@ -63,14 +62,16 @@ class CoreInstance:
             self.__release = self.__get_meta_value('schema_version')
         return self.__release
 
+
 def get_division(src_uri, tgt_uri, db_type):
     uri = src_uri
     if db_type == "variation" or db_type == "funcgen":
-        uri = tgt_uri.replace("_variation_", "_core_").replace("_funcgen_","_core_")
+        uri = tgt_uri.replace("_variation_", "_core_").replace("_funcgen_", "_core_")
     inst = CoreInstance(uri)
     division_meta = inst.division
-    division = str(division_meta).replace('Ensembl','')
+    division = str(division_meta).replace('Ensembl', '')
     return division.lower()
+
 
 def get_release(src_uri):
     inst = CoreInstance(src_uri)
