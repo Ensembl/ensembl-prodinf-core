@@ -15,8 +15,6 @@ from setuptools import setup, find_namespace_packages
 
 with open(Path(__file__).parent / 'README.md') as f:
     readme = f.read()
-with open(Path(__file__).parent / 'LICENSE') as f:
-    license_ct = f.read()
 with open(Path(__file__).parent / 'VERSION') as f:
     version = f.read()
 
@@ -29,7 +27,7 @@ def import_requirements():
 
 setup(
     name='ensembl-prodinf-core',
-    version='1.0.0',
+    version=version,
     namespace_packages=['ensembl'],
     packages=find_namespace_packages(where='src', include=['ensembl.production.core.*']),
     package_dir={'': 'src'},
