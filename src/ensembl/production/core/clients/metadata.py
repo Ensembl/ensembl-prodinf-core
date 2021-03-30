@@ -17,8 +17,7 @@ from ensembl.production.core.server_utils import assert_mysql_db_uri
 
 class MetadataClient(RestClient):
 
-    def submit_job(self, database_uri, e_release, eg_release, release_date, current_release, email, comment, source,
-                   email_notification):
+    def submit_job(self, database_uri, e_release, eg_release, release_date, current_release, email, comment, source):
         assert_mysql_db_uri(database_uri)
 
         payload = {
@@ -31,8 +30,6 @@ class MetadataClient(RestClient):
             'comment': comment,
             'source': source
         }
-        if email_notification != None:
-            payload['email_notification'] = email_notification
         return super(MetadataClient, self).submit_job(payload)
 
     def print_job(self, job, print_results=False, print_input=False):
