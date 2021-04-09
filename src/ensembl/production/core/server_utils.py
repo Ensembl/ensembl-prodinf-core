@@ -10,6 +10,8 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
+# TODO clean up obsolete methods not available since we don't have mysql ssh access anymore
+
 import re
 import subprocess
 from urllib.parse import urlparse
