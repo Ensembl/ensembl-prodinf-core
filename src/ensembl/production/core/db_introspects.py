@@ -15,7 +15,7 @@ import re
 
 
 @lru_cache(maxsize=None)
-def get_engine(hostname, user='mysql', port='3306', password=''):
+def get_engine(hostname, port='3306', user='ensro', password=''):
     uri = 'mysql://{}:{}@{}:{}'.format(user,
                                        password,
                                        hostname,
