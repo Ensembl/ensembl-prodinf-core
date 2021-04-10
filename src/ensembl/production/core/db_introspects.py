@@ -23,6 +23,9 @@ def get_engine(hostname, port='3306', user='ensro', password=''):
     return sa.create_engine(uri, pool_recycle=3600)
 
 
+def get_schema_names(engine):
+    return sa.inspect(engine).get_schema_names()
+
 def get_database_set(hostname, port, name_filter='', name_matches=None, excluded_schemas=None):
     excluded = excluded_schemas or set()
     matches = name_matches or []
@@ -30,7 +33,7 @@ def get_database_set(hostname, port, name_filter='', name_matches=None, excluded
         db_engine = get_engine(hostname, port)
     except RuntimeError as e:
         raise ValueError('Invalid hostname: {} or port: {}'.format(hostname, port)) from e
-    database_list = sa.inspect(db_engine).get_schema_names()
+    database_list = get_schema_names(db_engine)
     if matches:
         database_set = set(database_list)
         names_set = set(matches)
