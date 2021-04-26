@@ -26,11 +26,11 @@ def get_engine(hostname, port='3306', user='ensro', password=''):
 def get_schema_names(engine):
     return sa.inspect(engine).get_schema_names()
 
-def get_database_set(hostname, port, name_filter='', name_matches=None, excluded_schemas=None):
+def get_database_set(hostname, port, user='ensro', password='', name_filter='', name_matches=None, excluded_schemas=None):
     excluded = excluded_schemas or set()
     matches = name_matches or []
     try:
-        db_engine = get_engine(hostname, port)
+        db_engine = get_engine(hostname, port, user, password)
     except RuntimeError as e:
         raise ValueError('Invalid hostname: {} or port: {}'.format(hostname, port)) from e
     database_list = get_schema_names(db_engine)
@@ -46,14 +46,14 @@ def get_database_set(hostname, port, name_filter='', name_matches=None, excluded
         return set(filter(filter_db_re.search, database_list)).difference(excluded)
 
 
-def get_table_set(hostname, port, database, name_filter='', name_matches=[], excluded_tables=None):
+def get_table_set(hostname, port, database, user='ensro', password='', name_filter='', name_matches=[], excluded_tables=None):
     excluded = excluded_tables or set()
     try:
         filter_table_re = re.compile(name_filter)
     except re.error as e:
         raise ValueError('Invalid name_filter: {}'.format(name_filter)) from e
     try:
-        db_engine = get_engine(hostname, port)
+        db_engine = get_engine(hostname, port, user, password)
     except RuntimeError as e:
         raise ValueError('Invalid hostname: {} or port: {}'.format(hostname, port)) from e
     try:
