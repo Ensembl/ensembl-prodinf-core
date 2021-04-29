@@ -22,7 +22,10 @@ OPTIONS = {
     'retry': True,
     # 'compression': 'zlib',
     'retry_policy': {
-        'max_retries': 3
+        'interval_start': 0,
+        'interval_step': 2,
+        'interval_max': 30,
+        'max_retries': 5
     }
 }
 
@@ -40,11 +43,11 @@ class AMQPPublisher:
     please refer to: https://kombu.readthedocs.io/en/latest/userguide/producers.html#reference
     """
     def __init__(self, uri, exchange_name, exchange_type='topic', routing_key=None, formatter=None, **options):
-        self.connection = Connection(uri)
-        self.exchange = Exchange(exchange_name, type=exchange_type)
         self.routing_key = routing_key
         self.formatter = formatter
         self.options = {**OPTIONS, **options}
+        self.connection = Connection(uri, transport_options=self.options.get('retry_policy'))
+        self.exchange = Exchange(exchange_name, type=exchange_type)
 
 
     class AMQPProducer:
@@ -62,15 +65,17 @@ class AMQPPublisher:
                 raise ValueError('Invalid routing_key: {} (Producer routing_key is: {})'.format(
                     routing_key, self.routing_key
                     ))
+            logger.debug(
+                "Publishing message: %s, %s, Routing Key: %s, options: %s", body, self.exchange, key, self.options
+            )
             self.producer.publish(body,
                                   exchange=self.exchange,
                                   routing_key=key,
                                   declare=(self.exchange,),
                                   **self.options)
-            logger.debug('Published AMQP message. Exchange: %s, Routing Key: %s, Body: %s',
-                         self.exchange,
-                         key,
-                         str(body))
+            logger.debug(
+                'Published AMQP message: %s, %s, Routing Key: %s', body, self.exchange, key
+            )
 
 
     @contextmanager
@@ -92,7 +97,8 @@ class AMQPPublisher:
         """Acquire a producer from the global pool and publish a single message.
         An optional `routing_key` can be passed. If no `routing_key` is passed
         the instance one is used (in that case, if no `routing_key` has been set in the instance)
-        a ValueError is raised.
+        a ValueError is raised. Also raises kombu.exceptions.OperationalError if the message
+        cannot be delivered accordig to policy specified in this instance (i.e in self.options)
         """
         with self.acquire_producer() as producer:
             producer.publish(msg, routing_key)
