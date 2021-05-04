@@ -252,7 +252,7 @@ class HiveInstance:
         The input_data dict is converted to a Perl string before storing
         """
 
-        input_data['timestamp'] = time.time()
+        input_data['timestamp'] = time.ctime() 
         analysis = self.get_analysis_by_name(analysis_name)
         if analysis is None:
             raise ValueError("Analysis %s not found" % analysis_name)
