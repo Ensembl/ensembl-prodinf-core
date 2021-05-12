@@ -1,0 +1,6 @@
+---
+base_dir: !ENV '${HOME}/webprod/src'
+datacheck_output_dir: '/nfs/nobackup/ensembl/ensprod/datachecks'
+datacheck_common_dir: '/nfs/panda/ensembl/production/datachecks'
+hive_uri: 'mysql://${USER}@mysql-ens-hive-prod-1:4575/ensprod_db_datachecks_production'
+server_names_file: !ENV '${HOME}/${EXPECTEDVAR}/webprod/config/server_names.json'
