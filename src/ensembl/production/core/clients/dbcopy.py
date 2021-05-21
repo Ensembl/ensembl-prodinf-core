@@ -9,6 +9,8 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+
+from requests import RequestException
 from ensembl.production.core.rest import RestClient
 
 
@@ -53,7 +55,12 @@ class DbCopyRestClient(RestClient):
             'email_list': email_list,
             'user': user,
         }
-        return super().submit_job(payload)
+        try:
+            return super().submit_job(payload)
+        except RequestException as err:
+            raise RuntimeError(str(err)) from err
+        except KeyError as err:
+            raise RuntimeError(f"API response error. Missing field: '{err}'") from err
 
     def print_job(self, job, user, print_results=False):
         """
