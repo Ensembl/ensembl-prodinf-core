@@ -63,6 +63,31 @@ class DbCopyRestClient(RestClient):
         except KeyError as err:
             raise RuntimeError(f"API response error. Missing field: '{err}'") from err
 
+    def retrieve_job(self, job_id):
+        """
+        Retrieve information on a job.
+        Arguments:
+          job_id - ID of job to retrieve
+
+        Raises:
+          RuntimeError: If the request for jobs fails
+        """
+        try:
+            return super().retrieve_job(job_id)
+        except RequestException as err:
+            raise RuntimeError(str(err)) from err
+
+    def list_jobs(self):
+        """
+        List all current jobs
+        Raises:
+          RuntimeError: If the request for jobs fails
+        """
+        try:
+            return super().list_jobs()
+        except RequestException as err:
+            raise RuntimeError(str(err)) from err
+
     def print_job(self, job, user, print_results=False):
         """
         Print out details of a job
