@@ -143,7 +143,7 @@ class DbCopyRestClient(RestClient):
         host, port = url.split(':')
         host_parts = host.split('.')
         if len(host_parts) > 1:
-            if not host.endswith('.ebi.ac.uk'):
+            if host.endswith('.ebi.ac.uk'):
                 return 'Invalid domain: {}'.format(host)
         hostname = host_parts[0]
         actual_port = host_port_map.get(hostname)
