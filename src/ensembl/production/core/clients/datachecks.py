@@ -21,7 +21,7 @@ class DatacheckClient(RestClient):
 
     def submit_job(self, server_url, dbname, species, division, db_type,
                    datacheck_names, datacheck_groups, datacheck_types,
-                   email, tag):
+                   email, tag, target_url):
         """
     Run datachecks on a given server, for one or more species.
     Parameter requirements are complicated, because only the server_url is absolutely required,
@@ -39,6 +39,7 @@ class DatacheckClient(RestClient):
 
       email - optional address for an email on job completion
       tag - optional text for grouping datacheck submissions
+      target_url - determine which registry to use 
     """
         assert_mysql_uri(server_url)
 
@@ -52,7 +53,8 @@ class DatacheckClient(RestClient):
             'datacheck_groups': [],
             'datacheck_types': [],
             'email': email,
-            'tag': tag
+            'tag': tag,
+            'target_url': target_url 
         }
 
         if datacheck_names is not None:
