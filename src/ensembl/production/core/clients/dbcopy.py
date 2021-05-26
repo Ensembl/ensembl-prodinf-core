@@ -10,6 +10,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import logging
 from requests import RequestException
 from ensembl.production.core.rest import RestClient
 
@@ -61,6 +62,31 @@ class DbCopyRestClient(RestClient):
             raise RuntimeError(str(err)) from err
         except KeyError as err:
             raise RuntimeError(f"API response error. Missing field: '{err}'") from err
+
+    def retrieve_job(self, job_id):
+        """
+        Retrieve information on a job.
+        Arguments:
+          job_id - ID of job to retrieve
+
+        Raises:
+          RuntimeError: If the request for jobs fails
+        """
+        try:
+            return super().retrieve_job(job_id)
+        except RequestException as err:
+            raise RuntimeError(str(err)) from err
+
+    def list_jobs(self):
+        """
+        List all current jobs
+        Raises:
+          RuntimeError: If the request for jobs fails
+        """
+        try:
+            return super().list_jobs()
+        except RequestException as err:
+            raise RuntimeError(str(err)) from err
 
     def print_job(self, job, user, print_results=False):
         """
@@ -117,7 +143,7 @@ class DbCopyRestClient(RestClient):
         host, port = url.split(':')
         host_parts = host.split('.')
         if len(host_parts) > 1:
-            if not host.endswith('.ebi.ac.uk'):
+            if host.endswith('.ebi.ac.uk'):
                 return 'Invalid domain: {}'.format(host)
         hostname = host_parts[0]
         actual_port = host_port_map.get(hostname)
