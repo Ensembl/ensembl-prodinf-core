@@ -39,7 +39,7 @@ class DatacheckClient(RestClient):
 
       email - optional address for an email on job completion
       tag - optional text for grouping datacheck submissions
-      target_url - determine which registry to use 
+      target_url - optional location of 'ancillary' server, for related databases
     """
         assert_mysql_uri(server_url)
 
