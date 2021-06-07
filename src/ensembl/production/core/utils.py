@@ -93,13 +93,16 @@ def escape_perl_string(v):
     """Escape characters with special meaning in perl"""
     return str(v).replace("$","\\$").replace("\"","\\\"").replace("@","\\@")
 
+def json_decode_error_context(error):
+    beg = max(0, error.pos - 25)
+    end = min(len(error.doc), error.pos + 25)
+    return f"{error}. --> {error.doc[beg:end]} <--"
+
 def perl_string_to_python(s):
     """Parse a Perl hash string into a Python dict"""
     s = s.replace("=>",":").replace("\\$","$").replace("\\@","@")
     try:
         res = json.loads(s)
-    except json.JSONDecodeError as e:
-        beg = max(0, e.pos - 25)
-        end = min(len(e.doc), e.pos + 25)
-        raise ValueError('Invalid JSON: {}. --> {} <--'.format(e, e.doc[beg:end]))
+    except json.JSONDecodeError as err:
+        raise ValueError(f"Invalid JSON: {json_decode_error_context(err)}")
     return res

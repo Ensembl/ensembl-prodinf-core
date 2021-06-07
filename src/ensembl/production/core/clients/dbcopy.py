@@ -11,8 +11,12 @@
 #   limitations under the License.
 
 import logging
+from json import JSONDecodeError
+import os
+from urllib.parse import urlsplit, urlunsplit
 from requests import RequestException
 from ensembl.production.core.rest import RestClient
+from ensembl.production.core.utils import json_decode_error_context
 
 
 class DbCopyRestClient(RestClient):
@@ -22,6 +26,8 @@ class DbCopyRestClient(RestClient):
 
     jobs = '{}'
     jobs_id = '{}/{}'
+    src_host_list_url = 'srchost'
+    tgt_host_list_url = 'tgthost'
 
     def submit_job(self, src_host, src_incl_db, src_skip_db, src_incl_tables,
                    src_skip_tables, tgt_host, tgt_db_name, skip_optimize,
@@ -151,3 +157,31 @@ class DbCopyRestClient(RestClient):
             return 'Invalid hostname: {}'.format(host)
         if int(port) != int(actual_port):
             return 'Invalid port for hostname: {}. Please use port: {}'.format(host, actual_port)
+
+    def retrieve_host_list(self, host_type):
+        if host_type == 'source':
+            url = self.src_host_list_url
+        elif host_type == 'target':
+            url = self.tgt_host_list_url
+        else:
+            raise ValueError('Invalid host_type: %s. Use "source" or "target"' % host_type)
+        # Deconstruct the url in order to work with new endpoints.
+        # TODO: Refactor when the old db_copy service is retired.
+        uri = urlsplit(self.uri)
+        endpoint = urlunsplit((uri.scheme,
+                               uri.netloc,
+                               os.path.join(os.path.dirname(uri.path), url),
+                               uri.query,
+                               uri.fragment))
+        with self._session() as session:
+            r = session.get(endpoint)
+        if r.status_code != 200:
+            logging.error("Failed to retrieve host list: %s", r.text)
+        try:
+            r.raise_for_status()
+        except RequestException as err:
+            raise RuntimeError(str(err)) from err
+        try:
+            return r.json()
+        except JSONDecodeError as err:
+            raise RuntimeError(f"Can't decode JSON response: {json_decode_error_context(err)}")
