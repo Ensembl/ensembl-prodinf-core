@@ -24,8 +24,8 @@ class HandoverClient(object):
     Client for submitting databases for handover
     """
 
-    handovers = '{}handovers'
-    handover_token = '{}handovers/{}'
+    handovers = '{}jobs'
+    handover_token = '{}jobs/{}'
 
     def __init__(self, uri):
         assert_http_uri(uri)
@@ -35,6 +35,7 @@ class HandoverClient(object):
         """
         Arguments:
           spec : dict containing keys `src_uri`, `comment` and `contact`
+        #TODO move this onto submit_job standard from parent class
         """
         assert_mysql_db_uri(spec['src_uri'])
         assert_email(spec['contact'])
@@ -48,7 +49,7 @@ class HandoverClient(object):
         """
         Retrieve full list of handover databases
         """
-        logging.info("Listing")
+        logging.info("Listing from %s", self.handovers.format(self.uri))
         r = requests.get(self.handovers.format(self.uri))
         r.raise_for_status()
         return r.json()
@@ -59,15 +60,16 @@ class HandoverClient(object):
         Arguments:
           handover : Handover dict
         """
+        handover_api_link = self.handover_token.format(self.uri, str(handover['handover_token']))
         report_time = datetime.strptime(handover['report_time'], "%Y-%m-%dT%H:%M:%S.%f")
         if 'current_message' in handover:
             logging.info("Handover %s (%s) submitted by (%s) - %s on %s" % (
-                handover['handover_token'], handover['src_uri'], handover['contact'], handover['current_message'],
+                handover_api_link, handover['src_uri'], handover['contact'], handover['current_message'],
                 report_time.strftime('%d-%m-%Y %H:%M')))
         elif 'message' in handover:
-            logging.info("Handover %s (%s) submitted by (%s) - %s on %s" % (
-                handover['handover_token'], handover['src_uri'], handover['contact'], handover['message'],
-                report_time.strftime('%d-%m-%Y %H:%M')))
+            logging.info("Handover %s (%s) submitted by (%s) - %s on %s." % (
+                handover_api_link, handover['src_uri'], handover['contact'], handover['message'],
+                report_time.strftime('%d-%m-%Y %H:%M'), ))
 
     def retrieve_handover(self, handover_token):
         """
@@ -90,7 +92,7 @@ class HandoverClient(object):
         fail_pattern = re.compile(".*(failed|problems).*")
         successful_pattern = re.compile(".*successful.*")
         summary = {}
-        logging.info("Retrieving handovers for " + str(email))
+        logging.info("Retrieving handovers for %s", str(email) )
         for handover in handovers:
             if handover['contact'] == email:
                 src_uri = make_url(handover['src_uri'])
