@@ -46,22 +46,13 @@ def get_database_set(hostname, port, user='ensro', password='', name_filter='', 
         return set(filter(filter_db_re.search, database_list)).difference(excluded)
 
 
-def get_table_set(hostname, port, database, user='ensro', password='', name_filter='', name_matches=[], excluded_tables=None):
-    excluded = excluded_tables or set()
-    try:
-        filter_table_re = re.compile(name_filter)
-    except re.error as e:
-        raise ValueError('Invalid name_filter: {}'.format(name_filter)) from e
+def get_table_set(
+        hostname, port, database, user='ensro', password='', incl_filters=None, skip_filters=None
+):
     try:
         db_engine = get_engine(hostname, port, user, password)
     except RuntimeError as e:
         raise ValueError('Invalid hostname: {} or port: {}'.format(hostname, port)) from e
-    try:
-        table_list = sa.inspect(db_engine).get_table_names(schema=database)
-    except sa.exc.OperationalError as e:
-        raise ValueError('Invalid database: {}'.format(database)) from e
-    if name_matches:
-        table_set = set(table_list)
-        table_names_set = set(name_matches)
-        return table_set.difference(excluded).intersection(table_names_set)
-    return set(filter(filter_table_re.search, table_list)).difference(excluded)
+    table_list = get_table_names(db_engine, database)
+    return _apply_filters(table_list, incl_filters, skip_filters)
+
