@@ -26,42 +26,53 @@ def get_engine(hostname, port='3306', user='ensro', password=''):
 def get_schema_names(engine):
     return sa.inspect(engine).get_schema_names()
 
-def get_database_set(hostname, port, user='ensro', password='', name_filter='', name_matches=None, excluded_schemas=None):
-    excluded = excluded_schemas or set()
-    matches = name_matches or []
+
+def get_table_names(engine, database):
+    try:
+        return sa.inspect(engine).get_table_names(schema=database)
+    except sa.exc.OperationalError as e:
+        raise ValueError('Invalid database: {}'.format(database)) from e
+
+
+def _filter_names(names_list, filters):
+    filtered_names = set()
+    if filters:
+        try:
+            for filter_re in filters:
+                re.compile(filter_re)
+        except re.error as e:
+            raise ValueError('Invalid name_filter: {}'.format(filter_re)) from e
+        filter_names_re = re.compile('$|^'.join(filters))
+        filtered_names = set(filter(filter_names_re.search, names_list))
+    return filtered_names
+
+
+def _apply_filters(names_list, incl_filters, skip_filters):
+    names = set(names_list)
+    if incl_filters:
+        names = _filter_names(names_list, incl_filters)
+    skip_names = _filter_names(names_list, skip_filters)
+    return names.difference(skip_names)
+
+
+def get_database_set(
+        hostname, port, user='ensro', password='', incl_filters=None, skip_filters=None
+):
     try:
         db_engine = get_engine(hostname, port, user, password)
     except RuntimeError as e:
         raise ValueError('Invalid hostname: {} or port: {}'.format(hostname, port)) from e
     database_list = get_schema_names(db_engine)
-    if matches:
-        database_set = set(database_list)
-        names_set = set(matches)
-        return database_set.difference(excluded).intersection(names_set)
-    else:
-        try:
-            filter_db_re = re.compile(name_filter)
-        except re.error as e:
-            raise ValueError('Invalid name_filter: {}'.format(name_filter)) from e
-        return set(filter(filter_db_re.search, database_list)).difference(excluded)
+    return _apply_filters(database_list, incl_filters, skip_filters)
 
 
-def get_table_set(hostname, port, database, user='ensro', password='', name_filter='', name_matches=[], excluded_tables=None):
-    excluded = excluded_tables or set()
-    try:
-        filter_table_re = re.compile(name_filter)
-    except re.error as e:
-        raise ValueError('Invalid name_filter: {}'.format(name_filter)) from e
+def get_table_set(
+        hostname, port, database, user='ensro', password='', incl_filters=None, skip_filters=None
+):
     try:
         db_engine = get_engine(hostname, port, user, password)
     except RuntimeError as e:
         raise ValueError('Invalid hostname: {} or port: {}'.format(hostname, port)) from e
-    try:
-        table_list = sa.inspect(db_engine).get_table_names(schema=database)
-    except sa.exc.OperationalError as e:
-        raise ValueError('Invalid database: {}'.format(database)) from e
-    if name_matches:
-        table_set = set(table_list)
-        table_names_set = set(name_matches)
-        return table_set.difference(excluded).intersection(table_names_set)
-    return set(filter(filter_table_re.search, table_list)).difference(excluded)
+    table_list = get_table_names(db_engine, database)
+    return _apply_filters(table_list, incl_filters, skip_filters)
+
