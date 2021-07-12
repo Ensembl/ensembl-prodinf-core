@@ -331,7 +331,6 @@ class HiveInstance:
                 result['status'] = self.get_job_tree_status(job)
                 if progress:
                     result['progress'] = self.get_all_jobs_progress(job.job_id, analysis_id=analysis_id)
-                    #result['progress'] = self.get_jobs_progress(job)
         except ValueError as e:
             raise ValueError('Cannot retrieve results for job: {}'.format(job.job_id)) from e
         except SQLAlchemyError as e:
