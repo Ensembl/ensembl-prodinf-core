@@ -21,7 +21,7 @@ class DatacheckClient(RestClient):
 
     def submit_job(self, server_url, dbname, species, division, db_type,
                    datacheck_names, datacheck_groups, datacheck_types,
-                   email, tag, target_url):
+                   email, tag, target_url=None):
         #FIXME Make signature identical to parent
         """
     Run datachecks on a given server, for one or more species.
@@ -54,10 +54,10 @@ class DatacheckClient(RestClient):
             'datacheck_groups': [],
             'datacheck_types': [],
             'email': email,
-            'tag': tag,
-            'target_url': target_url 
+            'tag': tag 
         }
-
+        if target_url is not None: 
+            payload['target_url'] = target_url 
         if datacheck_names is not None:
             payload['datacheck_names'] = datacheck_names.split(',')
         if datacheck_groups is not None:
