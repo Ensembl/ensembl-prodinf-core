@@ -55,9 +55,10 @@ class DatacheckClient(RestClient):
             'datacheck_types': [],
             'email': email,
             'tag': tag,
-            'target_url': target_url 
         }
 
+        if target_url is not None:
+            payload['target_url'] = target_url
         if datacheck_names is not None:
             payload['datacheck_names'] = datacheck_names.split(',')
         if datacheck_groups is not None:
