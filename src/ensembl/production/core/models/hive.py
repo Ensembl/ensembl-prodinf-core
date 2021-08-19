@@ -15,7 +15,7 @@ import logging
 import re
 import time
 
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, func
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, func, and_
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
@@ -132,6 +132,7 @@ class Job(Base):
                     autoincrement=True)
     input_id = Column(String)
     status = Column(String)
+    param_id_stack = Column(String)
     prev_job_id = Column(Integer)
     controlled_semaphore_id = Column(Integer, ForeignKey("semaphore.semaphore_id"))
     role_id = Column(Integer, ForeignKey("role.role_id"))
@@ -292,7 +293,7 @@ class HiveInstance:
         finally:
             s.close()
 
-    def get_result_for_job_id(self, id, child=False, progress=True):
+    def get_result_for_job_id(self, id, child=False, progress=True, analysis_id=None):
 
         """ Get result for a given job id. If child flag is turned on and job child exist, get result for child job"""
 
@@ -306,9 +307,10 @@ class HiveInstance:
             else:
                 return self.get_result_for_job(job, progress=progress)
         else:
-            return self.get_result_for_job(job, progress=progress)
+            return self.get_result_for_job(job, progress=progress, analysis_id=analysis_id)
 
-    def get_result_for_job(self, job, progress=False):
+
+    def get_result_for_job(self, job, progress=False, analysis_id=None):
 
         """ Determine if the job has completed. If the job has semaphored children, they are also checked """
         """ Also return progress of jobs, completed and total if flag is on """
@@ -318,6 +320,7 @@ class HiveInstance:
                 extended_data = job.input_id.split(" ")
                 job_input = self.get_analysis_data_input(extended_data[1])
                 result['input'] = perl_string_to_python(job_input.data)
+
             else:
                 result['input'] = perl_string_to_python(job.input_id)
             if job.status == 'DONE' and job.result is not None:
@@ -327,12 +330,41 @@ class HiveInstance:
             else:
                 result['status'] = self.get_job_tree_status(job)
                 if progress:
-                    result['progress'] = self.get_jobs_progress(job)
+                    result['progress'] = self.get_all_jobs_progress(job.job_id, analysis_id=analysis_id)
         except ValueError as e:
             raise ValueError('Cannot retrieve results for job: {}'.format(job.job_id)) from e
         except SQLAlchemyError as e:
             raise ValueError('DB error for job: {}'.format(job.job_id)) from e
         return result
+
+    def get_all_jobs_progress(self, job_id, analysis_id=None):
+        """
+             Get all jobs from Job table based on given job id and analysis id
+        """
+        s = Session()
+        try:
+
+            results = {'total': 0, 'inprogress': 0, 'completed': 0, 'failed': 0 }
+            job_pattern = f"{job_id},%" 
+            
+            if analysis_id:
+                jobs = s.query(Job).filter(and_(Job.param_id_stack.ilike(job_pattern), Job.analysis_id == analysis_id ) ).all() 
+            else:
+                jobs = s.query(Job).filter(Job.param_id_stack.ilike(job_pattern) ).all()
+
+            for job in jobs:
+              results['total'] += 1
+              if job.status == 'DONE':
+                results['completed'] += 1
+              elif job.status == 'FAILED':
+                results['failed'] += 1
+              else:
+                results['inprogress'] += 1
+            return results
+        except Exception as e:
+            return results
+        finally:
+            s.close() 
 
     def get_last_job_progress(self, job):
         """ Return last job progress line if exists, else None """
