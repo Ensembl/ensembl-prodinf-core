@@ -9,7 +9,14 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+
+import logging
+from json import JSONDecodeError
+import os
+from urllib.parse import urlsplit, urlunsplit
+from requests import RequestException
 from ensembl.production.core.rest import RestClient
+from ensembl.production.core.utils import json_decode_error_context
 
 
 class DbCopyRestClient(RestClient):
@@ -19,6 +26,8 @@ class DbCopyRestClient(RestClient):
 
     jobs = '{}'
     jobs_id = '{}/{}'
+    src_host_list_url = 'srchost'
+    tgt_host_list_url = 'tgthost'
 
     def submit_job(self, src_host, src_incl_db, src_skip_db, src_incl_tables,
                    src_skip_tables, tgt_host, tgt_db_name, skip_optimize,
@@ -39,6 +48,7 @@ class DbCopyRestClient(RestClient):
           email_list: List of emails
           user: user name
         """
+        #FIXME Make signature identical to parent
         payload = {
             'src_host': src_host,
             'src_incl_db': src_incl_db,
@@ -53,7 +63,37 @@ class DbCopyRestClient(RestClient):
             'email_list': email_list,
             'user': user,
         }
-        return super().submit_job(payload)
+        try:
+            return super().submit_job(payload)
+        except RequestException as err:
+            raise RuntimeError(str(err)) from err
+        except KeyError as err:
+            raise RuntimeError(f"API response error. Missing field: '{err}'") from err
+
+    def retrieve_job(self, job_id):
+        """
+        Retrieve information on a job.
+        Arguments:
+          job_id - ID of job to retrieve
+
+        Raises:
+          RuntimeError: If the request for jobs fails
+        """
+        try:
+            return super().retrieve_job(job_id)
+        except RequestException as err:
+            raise RuntimeError(str(err)) from err
+
+    def list_jobs(self):
+        """
+        List all current jobs
+        Raises:
+          RuntimeError: If the request for jobs fails
+        """
+        try:
+            return super().list_jobs()
+        except RequestException as err:
+            raise RuntimeError(str(err)) from err
 
     def print_job(self, job, user, print_results=False):
         """
@@ -110,7 +150,7 @@ class DbCopyRestClient(RestClient):
         host, port = url.split(':')
         host_parts = host.split('.')
         if len(host_parts) > 1:
-            if not host.endswith('.ebi.ac.uk'):
+            if host.endswith('.ebi.ac.uk'):
                 return 'Invalid domain: {}'.format(host)
         hostname = host_parts[0]
         actual_port = host_port_map.get(hostname)
@@ -118,3 +158,31 @@ class DbCopyRestClient(RestClient):
             return 'Invalid hostname: {}'.format(host)
         if int(port) != int(actual_port):
             return 'Invalid port for hostname: {}. Please use port: {}'.format(host, actual_port)
+
+    def retrieve_host_list(self, host_type):
+        if host_type == 'source':
+            url = self.src_host_list_url
+        elif host_type == 'target':
+            url = self.tgt_host_list_url
+        else:
+            raise ValueError('Invalid host_type: %s. Use "source" or "target"' % host_type)
+        # Deconstruct the url in order to work with new endpoints.
+        # TODO: Refactor when the old db_copy service is retired.
+        uri = urlsplit(self.uri)
+        endpoint = urlunsplit((uri.scheme,
+                               uri.netloc,
+                               os.path.join(os.path.dirname(uri.path), url),
+                               uri.query,
+                               uri.fragment))
+        with self._session() as session:
+            r = session.get(endpoint)
+        if r.status_code != 200:
+            logging.error("Failed to retrieve host list: %s", r.text)
+        try:
+            r.raise_for_status()
+        except RequestException as err:
+            raise RuntimeError(str(err)) from err
+        try:
+            return r.json()
+        except JSONDecodeError as err:
+            raise RuntimeError(f"Can't decode JSON response: {json_decode_error_context(err)}")

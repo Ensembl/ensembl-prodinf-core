@@ -19,6 +19,7 @@ from ensembl.production.core.server_utils import assert_mysql_db_uri
 class MetadataClient(RestClient):
 
     def submit_job(self, database_uri, e_release, eg_release, release_date, current_release, email, comment, source):
+        #FIXME Make signature identical to parent
         assert_mysql_db_uri(database_uri)
 
         payload = {
@@ -80,7 +81,7 @@ class MetadataClient(RestClient):
             logging.info("Job failed with error: " + str(failure_msg['msg']))
 
     def print_inputs(self, i):
-        logging.info("database URI: " + i['database_uri'])
+        logging.info("Database URI: " + i['database_uri'])
         if 'e_release' in i:
             logging.info("Ensembl release number: " + str(i['e_release']))
         if 'eg_release' in i:

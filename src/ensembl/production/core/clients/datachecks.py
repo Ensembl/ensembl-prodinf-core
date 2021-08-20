@@ -21,7 +21,8 @@ class DatacheckClient(RestClient):
 
     def submit_job(self, server_url, dbname, species, division, db_type,
                    datacheck_names, datacheck_groups, datacheck_types,
-                   email, tag):
+                   email, tag, target_url):
+        #FIXME Make signature identical to parent
         """
     Run datachecks on a given server, for one or more species.
     Parameter requirements are complicated, because only the server_url is absolutely required,
@@ -39,6 +40,7 @@ class DatacheckClient(RestClient):
 
       email - optional address for an email on job completion
       tag - optional text for grouping datacheck submissions
+      target_url - optional location of 'ancillary' server, for related databases
     """
         assert_mysql_uri(server_url)
 
@@ -52,9 +54,11 @@ class DatacheckClient(RestClient):
             'datacheck_groups': [],
             'datacheck_types': [],
             'email': email,
-            'tag': tag
+            'tag': tag,
         }
 
+        if target_url is not None:
+            payload['target_url'] = target_url
         if datacheck_names is not None:
             payload['datacheck_names'] = datacheck_names.split(',')
         if datacheck_groups is not None:
