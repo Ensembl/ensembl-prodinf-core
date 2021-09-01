@@ -132,7 +132,7 @@ class Job(Base):
                     autoincrement=True)
     input_id = Column(String)
     status = Column(String)
-    param_id_stack = Column(String)
+    param_id_stack = Column(String, default='')
     prev_job_id = Column(Integer)
     controlled_semaphore_id = Column(Integer, ForeignKey("semaphore.semaphore_id"))
     role_id = Column(Integer, ForeignKey("role.role_id"))
