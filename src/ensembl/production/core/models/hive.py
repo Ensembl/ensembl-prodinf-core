@@ -1,4 +1,4 @@
-# .. See the NOTICE file distributed with this work for additional information
+#    See the NOTICE file distributed with this work for additional information
 #    regarding copyright ownership.
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ from ensembl.production.core.perl_utils import dict_to_perl_string, perl_string_
 __all__ = ['Result', 'LogMessage', 'Job', 'HiveInstance', 'Analysis']
 
 Base = declarative_base()
+
 logger = logging.getLogger(__name__)
 
 
@@ -164,7 +165,6 @@ class HiveInstance:
         Session.configure(bind=self.engine)
 
     def get_job_by_id(self, id):
-
         """ Retrieve a job given the unique surrogate ID """
         s = Session()
         try:
@@ -177,7 +177,6 @@ class HiveInstance:
             s.close()
 
     def get_worker_id(self, id):
-
         """ Retrieve a worker_id for a given role_id """
         s = Session()
         try:
@@ -186,7 +185,6 @@ class HiveInstance:
             s.close()
 
     def get_jobs_failure_msg(self, id):
-
         """Get failures for all the parent and child jobs"""
         s = Session()
         try:
@@ -202,7 +200,6 @@ class HiveInstance:
             s.close()
 
     def get_job_failure_msg_by_id(self, id, child=False):
-
         """ Retrieve a job failure message or job child if exist and if child flag turned on"""
         s = Session()
         job = self.get_job_by_id(id)
@@ -230,7 +227,6 @@ class HiveInstance:
                 s.close()
 
     def get_worker_process_id(self, id):
-
         """ Find a workers process_id """
         s = Session()
         try:
@@ -239,7 +235,6 @@ class HiveInstance:
             s.close()
 
     def get_analysis_by_name(self, name):
-
         """ Find an analysis """
         s = Session()
         try:
@@ -247,13 +242,13 @@ class HiveInstance:
         finally:
             s.close()
 
-    def create_job(self, analysis_name, input_data):
 
-        """ Create a job for the supplied analysis and input hash
+    def create_job(self, analysis_name, input_data):
+        """
+        Create a job for the supplied analysis and input hash
         The input_data dict is converted to a Perl string before storing
         """
-
-        input_data['timestamp'] = time.ctime() 
+        input_data['timestamp'] = time.ctime()
         analysis = self.get_analysis_by_name(analysis_name)
         if analysis is None:
             raise ValueError("Analysis %s not found" % analysis_name)
@@ -274,7 +269,6 @@ class HiveInstance:
             s.close()
 
     def get_analysis_data_input(self, analysis_data_id):
-
         """ Get the job input stored in the analysis_data table. Get input from child job if exist"""
         s = Session()
         try:
@@ -284,7 +278,6 @@ class HiveInstance:
             s.close()
 
     def get_semaphore_data(self, semaphore_job_id):
-
         """ Get the job semaphore count if exist"""
         s = Session()
         try:
@@ -294,7 +287,6 @@ class HiveInstance:
             s.close()
 
     def get_result_for_job_id(self, id, child=False, progress=True, analysis_id=None):
-
         """ Get result for a given job id. If child flag is turned on and job child exist, get result for child job"""
 
         job = self.get_job_by_id(id)
@@ -309,11 +301,11 @@ class HiveInstance:
         else:
             return self.get_result_for_job(job, progress=progress, analysis_id=analysis_id)
 
-
     def get_result_for_job(self, job, progress=False, analysis_id=None):
-
-        """ Determine if the job has completed. If the job has semaphored children, they are also checked """
-        """ Also return progress of jobs, completed and total if flag is on """
+        """
+        Determine if the job has completed. If the job has semaphored children, they are also checked
+        Also return progress of jobs, completed and total if flag is on
+        """
         result = {"id": job.job_id}
         try:
             if re.search(r"^(_extended_data_id){1}(\s){1}(\d+){1}", job.input_id):
@@ -339,16 +331,15 @@ class HiveInstance:
 
     def get_all_jobs_progress(self, job_id, analysis_id=None):
         """
-             Get all jobs from Job table based on given job id and analysis id
+        Get all jobs from Job table based on given job id and analysis id
         """
         s = Session()
         try:
-
             results = {'total': 0, 'inprogress': 0, 'completed': 0, 'failed': 0 }
-            job_pattern = f"{job_id},%" 
-            
+            job_pattern = f"{job_id},%"
+
             if analysis_id:
-                jobs = s.query(Job).filter(and_(Job.param_id_stack.ilike(job_pattern), Job.analysis_id == analysis_id ) ).all() 
+                jobs = s.query(Job).filter(and_(Job.param_id_stack.ilike(job_pattern), Job.analysis_id == analysis_id ) ).all()
             else:
                 jobs = s.query(Job).filter(Job.param_id_stack.ilike(job_pattern) ).all()
 
@@ -364,7 +355,7 @@ class HiveInstance:
         except Exception as e:
             return results
         finally:
-            s.close() 
+            s.close()
 
     def get_last_job_progress(self, job):
         """ Return last job progress line if exists, else None """
@@ -377,11 +368,12 @@ class HiveInstance:
             s.close()
 
     def get_jobs_progress(self, job):
-
-        """ Check data in the job_progress table """
-        """ alternatively, get jobs progress for parent and children jobs"""
-        """ Return number of completed jobs and total of jobs"""
-        """ If there is data in the job_progress table, return progress message"""
+        """
+        Check data in the job_progress table
+        alternatively, get jobs progress for parent and children jobs
+        Return number of completed jobs and total of jobs
+        If there is data in the job_progress table, return progress message
+        """
         s = Session()
         try:
             last_job_progress_msg = s.query(JobProgress).filter(JobProgress.job_id == job.job_id).order_by(
@@ -405,15 +397,17 @@ class HiveInstance:
             s.close()
 
     def get_job_tree_status(self, job):
-
         """ Recursively check all children of a job """
         # check for semaphores
         semaphore_data = None
+        logger.debug("get_job_tree_status :: job: %s", job)
         try:
             s = Session()
             semaphored_job = s.query(Job).filter(Job.prev_job_id == job.job_id and job.status == 'SEMAPHORED').first()
+            logger.debug("get_job_tree_status :: semaphored_job: %s", semaphored_job)
             if semaphored_job is not None:
                 semaphore_data = self.get_semaphore_data(semaphored_job.job_id)
+            logger.debug("get_job_tree_status :: semaphore_data: %s", semaphore_data)
         finally:
             s.close()
         if semaphore_data is not None and semaphore_data.local_jobs_counter > 0:
@@ -439,7 +433,6 @@ class HiveInstance:
                 return 'incomplete'
 
     def get_job_child(self, job):
-
         """ Get child job for a given parent job """
         s = Session()
         try:
@@ -449,7 +442,6 @@ class HiveInstance:
             s.close()
 
     def get_job_parent(self, job):
-
         """ Get parent job for a given children job """
         s = Session()
         try:
@@ -459,8 +451,8 @@ class HiveInstance:
             s.close()
 
     def get_semaphored_jobs(self, job, status=None):
-
-        """ Find all jobs that are semaphored children of the nominated job, optional filtering by status
+        """
+        Find all jobs that are semaphored children of the nominated job, optional filtering by status
         'complete' indicates that all children completed successfully
         'failed' indicates that at least one child has failed
         'incomplete' indicates that at least one child is running or ready
@@ -478,24 +470,22 @@ class HiveInstance:
             s.close()
 
     def check_semaphores_for_job(self, semaphore_data):
-
         """ Find all jobs that are semaphored children of the nominated job, and check whether they have completed """
-
         s = Session()
         try:
             status = 'complete'
             jobs = dict(s.query(Job.status, func.count(Job.status)).filter(
                 semaphore_data.semaphore_id == Job.controlled_semaphore_id).group_by(Job.status).all())
-            if 'FAILED' in jobs and jobs['FAILED'] > 0:
+            logger.debug("check_semaphores_for_job :: jobs: %s", jobs)
+            if jobs.get('FAILED', 0) > 0:
                 status = 'failed'
-            elif ('READY' in jobs and jobs['READY'] > 0) or ('RUN' in jobs and jobs['RUN'] > 0):
+            elif jobs.get('READY', 0) > 0 or jobs.get('RUN', 0) > 0 or jobs.get('SEMAPHORED', 0) > 0:
                 status = 'incomplete'
             return status
         finally:
             s.close()
 
     def get_all_results(self, analysis_name, child=False):
-
         """Find all jobs from the specified analysis"""
         s = Session()
         try:
@@ -509,7 +499,6 @@ class HiveInstance:
             s.close()
 
     def delete_job(self, job, child=False):
-
         """Delete a job from the hive database
            If child flag turn on, try to delete child job if exist
            Also get parent job if exist and delete it """

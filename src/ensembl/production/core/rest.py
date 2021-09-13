@@ -1,4 +1,4 @@
-# .. See the NOTICE file distributed with this work for additional information
+#    See the NOTICE file distributed with this work for additional information
 #    regarding copyright ownership.
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -12,8 +12,6 @@
 
 import logging
 import requests
-import argparse
-import time
 from ensembl.production.core.server_utils import assert_http_uri
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
