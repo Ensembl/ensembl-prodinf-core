@@ -1,4 +1,4 @@
-# .. See the NOTICE file distributed with this work for additional information
+#    See the NOTICE file distributed with this work for additional information
 #    regarding copyright ownership.
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -11,19 +11,17 @@
 #    limitations under the License.
 
 # TODO clean up obsolete methods not available since we don't have mysql ssh access anymore
-
+"""
+Utilities for dealing with REST and database servers
+"""
 import re
-import subprocess
+from subprocess import Popen, PIPE, TimeoutExpired
 from urllib.parse import urlparse
 
 
 db_netloc_re = re.compile(r'^.+@.+:\d+$')
 email_re = re.compile(r'^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$')
 
-
-"""
-Utilities for dealing with REST and database servers
-"""
 
 def assert_http_uri(uri):
     """Check supplied URI matches http"""
@@ -118,25 +116,31 @@ def process_df(status, line):
 def process_ncores(status, line):
     """Internal method to parse output of cpuinfo file and add to status hash"""
     elems = line.split()
-    status['n_cpus'] = int(elems[0])
+    if elems:
+        status['n_cpus'] = int(elems[0])
 
 
 def process_du(status, line):
     """Internal method to parse output of du and add to status hash"""
     elems = line.split()
-    status[elems[1]] = int(elems[0])
+    if elems:
+        status[elems[1]] = int(elems[0])
 
 
 def run_process(command, function, host=None):
     """Internal common method used to execute supplied command on supplied host, and parse with supplied function"""
     status = {}
     if host != None:
-        command = 'ssh -q ' + host + ' ' + command
-    p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
-    for line in p.stdout.readlines():
+        command = ['ssh -q', host, command]
+    proc = Popen(command, shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+    try:
+        outs, errs = proc.communicate(timeout=20)
+    except TimeoutExpired:
+        proc.kill()
+        outs, errs = proc.communicate()
+    if proc.returncode != 0:
+        status['command_error'] = {'stdout': outs, 'stderr': errs}
+    for line in outs.splitlines():
         function(status, line)
-    retval = p.wait()
-    if retval != 0:
-        raise OSError("Could not execute command " + command)
     return status
 
