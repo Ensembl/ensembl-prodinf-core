@@ -1,4 +1,4 @@
-# .. See the NOTICE file distributed with this work for additional information
+#    See the NOTICE file distributed with this work for additional information
 #    regarding copyright ownership.
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -9,118 +9,117 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
-#
+
 import logging
 import os
 import unittest
+import sys
 from shutil import copy2
 
+from ensembl.production.core.config import parse_debug_var
 from ensembl.production.core.models.hive import HiveInstance
+
 
 dirpath = os.path.dirname(os.path.abspath(__file__))
 
-logging.basicConfig()
-logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+LOG_LEVEL = logging.DEBUG if parse_debug_var(os.getenv("DEBUG")) else logging.WARNING
+
+logging.basicConfig(
+    stream=sys.stdout,
+    format="%(asctime)s %(levelname)-8s %(name)s: %(message)s",
+    level=LOG_LEVEL,
+)
+
+logger = logging.getLogger(__name__)
+logging.getLogger('sqlalchemy.engine').setLevel(LOG_LEVEL)
 
 
 class HiveTest(unittest.TestCase):
     """Create fresh database file"""
 
     def setUp(self):
-        logging.info("Creating test sqlite database")
+        logger.info("Creating test sqlite database")
         copy2(dirpath + "/test_pipeline.db.template", dirpath + "/test_pipeline.db")
-        logging.info("Connecting to hive test sqlite database " + dirpath + "/test_pipeline.db")
+        logger.info("Connecting to hive test sqlite database " + dirpath + "/test_pipeline.db")
         self.hive = HiveInstance("sqlite:///" + dirpath + "/test_pipeline.db")
 
-    """Basic test case for creating a new job"""
-
     def test_create_job(self):
+        """Basic test case for creating a new job"""
         job1 = self.hive.create_job('TestRunnable', {'x': 'y', 'a': 'b'})
-        logging.debug(job1)
+        logger.debug(job1)
         job2 = self.hive.get_job_by_id(job1.job_id)
-        logging.debug(job2)
-        self.assertEquals(job1.job_id, job2.job_id)
-        self.assertEquals(job1.analysis.logic_name, job2.analysis.logic_name)
-        self.assertEquals(job1.input_id, job2.input_id)
-
-    """Test case for checking on a finished semaphore"""
+        logger.debug(job2)
+        self.assertEqual(job1.job_id, job2.job_id)
+        self.assertEqual(job1.analysis.logic_name, job2.analysis.logic_name)
+        self.assertEqual(job1.input_id, job2.input_id)
 
     def test_check_semaphore_success(self):
+        """Test case for checking on a finished semaphore"""
         semaphore_data = self.hive.get_semaphore_data(2)
-        logging.debug(semaphore_data)
+        logger.debug(semaphore_data)
         status = self.hive.check_semaphores_for_job(semaphore_data)
-        logging.debug("Status for 2 is " + status)
-        self.assertEquals(status, 'complete', "Checking expected status for completed semaphore")
+        logger.debug("Status for 2 is " + status)
+        self.assertEqual(status, 'complete', "Checking expected status for completed semaphore")
 
-    """Test case for checking on a failed semaphore"""
-
-    def test_check_semaphore_failure(self):
+    def test_check_semaphore_incomplete(self):
+        """Test case for checking on an incomplete semaphore"""
         semaphore_data = self.hive.get_semaphore_data(8)
-        logging.debug(semaphore_data)
+        logger.debug("semaphore_data: %s", semaphore_data)
         status = self.hive.check_semaphores_for_job(semaphore_data)
-        logging.debug("Status for 8 is " + status)
-        self.assertEquals(status, 'failed', "Checking expected status for failed semaphore")
-
-    """Test case for checking on a completed single job"""
+        logger.debug("Status for 8 is " + status)
+        self.assertEqual(status, 'incomplete', "Checking expected status for failed semaphore")
 
     def test_check_job_success(self):
+        """Test case for checking on a completed single job"""
         job = self.hive.get_job_by_id(20)
-        logging.debug(job)
+        logger.debug(job)
         status = self.hive.get_job_tree_status(job)
-        self.assertEquals("complete", status, "Checking status of completed single job")
-
-    """Test case for checking on a failed single job"""
+        self.assertEqual("complete", status, "Checking status of completed single job")
 
     def test_check_job_failure(self):
+        """Test case for checking on a failed single job"""
         job = self.hive.get_job_by_id(11)
-        logging.debug(job)
+        logger.debug(job)
         status = self.hive.get_job_tree_status(job)
-        self.assertEquals("failed", status, "Checking status of failed single job")
-
-    """Test case for checking on a completed job factory"""
+        self.assertEqual("failed", status, "Checking status of failed single job")
 
     def test_check_job_tree_success(self):
+        """Test case for checking on a completed job factory"""
         job = self.hive.get_job_by_id(1)
-        logging.debug(job)
+        logger.debug(job)
         status = self.hive.get_job_tree_status(job)
-        logging.debug(status)
-        self.assertEquals("complete", status, "Checking status of completed job factory")
+        logger.debug(status)
+        self.assertEqual("complete", status, "Checking status of completed job factory")
 
-    """Test case for checking on a failed job factory"""
-
-    def test_check_job_tree_failure(self):
+    def test_check_job_tree_incomplete(self):
+        """Test case for checking on an incomplete job factory"""
         job = self.hive.get_job_by_id(7)
-        logging.debug(job)
+        logger.debug("Job: %s", job)
         status = self.hive.get_job_tree_status(job)
-        logging.debug(status)
-        self.assertEquals("failed", status, "Checking status of failed job factory")
-
-    """Test case for getting output on a completed job factory"""
+        self.assertEqual("incomplete", status, "Checking status of incomplete job factory")
 
     def test_get_job_output_success(self):
+        """Test case for getting output on a completed job factory"""
         output = self.hive.get_result_for_job_id(1)
-        logging.debug(output)
-        self.assertEquals('complete', output['status'], "Checking status of successful job factory output")
+        logger.debug(output)
+        self.assertEqual('complete', output['status'], "Checking status of successful job factory output")
         self.assertTrue(output['output'] != None, "Checking output of successful job factory output")
 
-    """Test case for getting output a failed job factory"""
-
-    def test_get_job_output_failed(self):
+    def test_get_job_output_incomplete(self):
+        """Test case for getting output an incomplete job factory"""
         output = self.hive.get_result_for_job_id(7)
-        logging.debug(output)
-        self.assertEquals('failed', output['status'], "Checking status of unsuccessful job factory output")
-        self.assertTrue('output' not in output, "Checking output of unsuccessful job factory output")
-
-    """Test case for listing all jobs"""
+        logger.debug(output)
+        self.assertEqual('incomplete', output['status'], "Checking status of incomplete job factory output")
+        self.assertTrue('output' not in output, "Checking output of incomplete job factory output")
 
     def test_get_all_results(self):
+        """Test case for listing all jobs"""
         jobs = self.hive.get_all_results('TestRunnable')
-        self.assertEquals(1, len(jobs), "Checking we got just one job")
-
-    """Remove test database file"""
+        self.assertEqual(1, len(jobs), "Checking we got just one job")
 
     def tearDown(self):
-        logging.info("Removing test sqlite database")
+        """Remove test database file"""
+        logger.info("Removing test sqlite database")
         # os.remove(dirpath+"/test_pipeline.db")
 
 
