@@ -6,4 +6,4 @@ build-backend = "setuptools.build_meta"
 testpaths = ["src/test"]
 
 [tool.coverage.run]
-source = ["src/ensembl"]
+source = ["src"]
