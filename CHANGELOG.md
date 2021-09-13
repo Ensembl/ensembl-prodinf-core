@@ -1,6 +1,11 @@
 Changelog
 =========
 
+1.3 - Update Hive to retrieve job status
+----------------------------------------
+- Hive retrieve job status for given job id
+- Enable filtering of metadata job lists in metadata client
+
 1.2 - Updated DatacheckClient submit payload
 --------------------------------------------
 - `DatacheckClient.submit_job` set `target_url` only if not `None`
