@@ -13,6 +13,7 @@
 import logging
 import os
 import unittest
+import pathlib
 import sys
 from shutil import copy2
 
@@ -20,7 +21,7 @@ from ensembl.production.core.config import parse_debug_var
 from ensembl.production.core.models.hive import HiveInstance
 
 
-dirpath = os.path.dirname(os.path.abspath(__file__))
+here = pathlib.Path(__file__).parent.resolve()
 
 LOG_LEVEL = logging.DEBUG if parse_debug_var(os.getenv("DEBUG")) else logging.WARNING
 
@@ -33,15 +34,18 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 logging.getLogger('sqlalchemy.engine').setLevel(LOG_LEVEL)
 
+DB_TEMPLATE_FILENAME = "test_pipeline.db.template"
+DB_FILENAME = "test_pipeline.db.sqlite3"
+
 
 class HiveTest(unittest.TestCase):
     """Create fresh database file"""
 
     def setUp(self):
         logger.info("Creating test sqlite database")
-        copy2(dirpath + "/test_pipeline.db.template", dirpath + "/test_pipeline.db")
-        logger.info("Connecting to hive test sqlite database " + dirpath + "/test_pipeline.db")
-        self.hive = HiveInstance("sqlite:///" + dirpath + "/test_pipeline.db")
+        copy2(here/DB_TEMPLATE_FILENAME, here/DB_FILENAME)
+        logger.info("Connecting to hive test sqlite database %s", here/DB_FILENAME)
+        self.hive = HiveInstance(f"sqlite:///{here/DB_FILENAME}")
 
     def test_create_job(self):
         """Basic test case for creating a new job"""
@@ -120,7 +124,7 @@ class HiveTest(unittest.TestCase):
     def tearDown(self):
         """Remove test database file"""
         logger.info("Removing test sqlite database")
-        # os.remove(dirpath+"/test_pipeline.db")
+        os.remove(here/DB_FILENAME)
 
 
 if __name__ == '__main__':
