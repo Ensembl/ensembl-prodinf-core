@@ -1,0 +1,28 @@
+FROM centos:centos8
+
+COPY . /usr/src/app/
+
+WORKDIR /opt
+RUN dnf update -y
+RUN dnf install -y gcc make sqlite-devel openssl-devel zlib-devel bzip2-devel libffi-devel wget sqlite
+RUN wget https://www.python.org/ftp/python/3.7.9/Python-3.7.9.tgz
+RUN tar xzf Python-3.7.9.tgz
+
+WORKDIR /opt/Python-3.7.9
+RUN ./configure --enable-optimizations --enable-loadable-sqlite-extensions
+RUN make altinstall
+
+WORKDIR /opt
+RUN rm -rf Python-3.7.9*
+
+WORKDIR /usr/src/app
+RUN pip3.7 install --no-cache-dir .
+
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+WORKDIR /usr/src/app/src/test
+# ENV DEBUG t
+ENV PYTHONPATH ./..
+
+CMD ["python3.7", "-m", "unittest"]
