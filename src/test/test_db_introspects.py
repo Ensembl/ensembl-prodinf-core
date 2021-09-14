@@ -145,5 +145,3 @@ class DBIntrospectsTest(unittest.TestCase):
         result = _apply_filters(names_list, incl_filters=None, skip_filters=skip_filters)
         self.assertSetEqual(set(expected), result)
 
-
-# Test filter without wildcards
