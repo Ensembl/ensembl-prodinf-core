@@ -38,7 +38,7 @@ def load_config_yaml(file_path, strict=False, tag='!ENV'):
     :rtype: dict[str, T]
     See https://gist.github.com/mkaranasou/ba83e25c835a8f7629e34dd7ede01931#file-python_yaml_environment_variables-py
     """
-    pattern = re.compile('.*?\${(\w+)}.*?')
+    pattern = re.compile(r'.*?\${(\w+)}.*?')
     loader = yaml.SafeLoader
 
     # the tag will be used to mark where to start searching for the pattern
