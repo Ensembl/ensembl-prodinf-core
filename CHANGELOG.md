@@ -1,6 +1,13 @@
 Changelog
 =========
 
+1.4 - Ready to be published on PyPI
+-----------------------------------
+- Fix tests and run them with pytest
+- Update some functions and methods
+- Automate test & deploy with Travis
+- Fix setup.py to be PyPI compliant
+
 1.3 - Update Hive to retrieve job status
 ----------------------------------------
 - Hive retrieve job status for given job id
