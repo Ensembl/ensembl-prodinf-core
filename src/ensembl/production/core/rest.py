@@ -14,7 +14,7 @@ import logging
 import requests
 from ensembl.production.core.server_utils import assert_http_uri
 from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.retry import Retry
+from urllib3.util.retry import Retry
 
 
 class RestClient(object):
@@ -35,7 +35,7 @@ class RestClient(object):
     def _make_HTTPAdapter(self):
         retries = Retry(total=3, backoff_factor=1,
                         status_forcelist=[429, 500, 502, 503, 504],
-                        method_whitelist=["GET", "PUT", "POST", "DELETE"])
+                        allowed_methods=["GET", "PUT", "POST", "DELETE"])
         adapter = HTTPAdapter(max_retries=retries)
         return adapter
 
