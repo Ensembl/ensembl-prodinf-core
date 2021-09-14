@@ -10,6 +10,8 @@ script:
   - coverage run -m pytest
   - coverage report -m
 
+# Not fully tested as travis isn't working anymore for some reason.
+# TODO: create a token for production PyPI, encrypt it, paste-it below and remove `server` params below.
 deploy:
   provider: pypi
   username: __token__
@@ -18,4 +20,5 @@ deploy:
     secure: dG2OpxwMSj6hCHV9aTjcr588txBEQf61Pv8BfrMsjQp8JwFMpEefd/L5FuxaYljw51Q4s6FRlnb1ouQn1O2O8fypJwUM5tFtkgi/jD3jdxi4xRgMB34COpefncu2JMNukEKII+PS1aA58oC9hBd6gz5ww3a04PR+aG+ODLRtdPuMIvr10oa85tr3q7crQOiE5oEgZ2vIuR/SD2oLKjNvoft1agi+urwbB7IFr0gKJPoxN5x4BXmUpTGeXl282oElXg6eG+vuVI0rjDxumtjraMCPpsxBjq8Ne0jWMLZ0JSsT5MFxc0Qi04OFBpI/LvhQQuOCsqPXO2qgZC2FlWTuzTaLPZBx5FI5l1nKmLDeQr2g02vq1Wnm880CFXdC9oe/JqIfUEUrRgP65d2Lp10OOzsu8SUv7bg+G39oKDShsGfAcki096l7xXx1W6GoIpCf5jU85+XgqKjqCacUKewPr1MuYJ1iX6qbgLNvzF4nlt+dx2zNK7IX06Lr3Enc+QoI+TSEzPnM+3IgQR0pkUSKZJKgZPGnHbDChHdfn4hPU+QvfjOsMs9hVLQ6X4vEPsaAC3rAM6kb1JHh2yxGqyNc0z386RKXtaqG4wPF4ppg+q361CirogLK82Z9IeySE1ugavrpIQsN5ZXJ3CTs2CYks75z74SHK/+ro4vSCJPxjyQ=
   on:
     tags: true
+    repo: Ensembl/ensmbl-prodinf-core
     condition: $TRAVIS_TAG =~ ^[0-9]+\.[0-9]+(\.[0-9]+)?$
