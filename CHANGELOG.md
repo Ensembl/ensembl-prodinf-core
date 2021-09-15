@@ -1,5 +1,13 @@
 Changelog
 =========
+1.3.1
+-----
+- Fix typo in indentation for job_progress retrieval
+
+1.3
+---
+- DC Status included from hive
+ 
 
 1.4 - Ready to be published on PyPI
 -----------------------------------
