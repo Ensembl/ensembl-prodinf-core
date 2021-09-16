@@ -253,7 +253,7 @@ class HiveInstance:
         The input_data dict is converted to a Perl string before storing
         """
 
-        input_data['timestamp'] = time.ctime() 
+        input_data['timestamp'] = time.ctime()
         analysis = self.get_analysis_by_name(analysis_name)
         if analysis is None:
             raise ValueError("Analysis %s not found" % analysis_name)
@@ -309,7 +309,6 @@ class HiveInstance:
         else:
             return self.get_result_for_job(job, progress=progress, analysis_id=analysis_id)
 
-
     def get_result_for_job(self, job, progress=False, analysis_id=None):
 
         """ Determine if the job has completed. If the job has semaphored children, they are also checked """
@@ -331,7 +330,7 @@ class HiveInstance:
                 result['status'] = self.get_job_tree_status(job)
                 if progress:
                     result['progress'] = self.get_all_jobs_progress(job.job_id, analysis_id=analysis_id)
-                    #result['progress'] = self.get_jobs_progress(job)
+                    # result['progress'] = self.get_jobs_progress(job)
         except ValueError as e:
             raise ValueError('Cannot retrieve results for job: {}'.format(job.job_id)) from e
         except SQLAlchemyError as e:
@@ -345,27 +344,28 @@ class HiveInstance:
         s = Session()
         try:
 
-            results = {'total': 0, 'inprogress': 0, 'completed': 0, 'failed': 0 }
-            job_pattern = f"{job_id},%" 
-            
+            results = {'total': 0, 'inprogress': 0, 'completed': 0, 'failed': 0}
+            job_pattern = f"{job_id},%"
+
             if analysis_id:
-                jobs = s.query(Job).filter(and_(Job.param_id_stack.ilike(job_pattern), Job.analysis_id == analysis_id ) ).all() 
+                jobs = s.query(Job).filter(
+                    and_(Job.param_id_stack.ilike(job_pattern), Job.analysis_id == analysis_id)).all()
             else:
-                jobs = s.query(Job).filter(Job.param_id_stack.ilike(job_pattern) ).all()
+                jobs = s.query(Job).filter(Job.param_id_stack.ilike(job_pattern)).all()
 
             for job in jobs:
-              results['total'] += 1
-              if job.status == 'DONE':
-                results['completed'] += 1
-              elif job.status == 'FAILED':
-                results['failed'] += 1
-              else:
-                results['inprogress'] += 1
+                results['total'] += 1
+                if job.status == 'DONE':
+                    results['completed'] += 1
+                elif job.status == 'FAILED':
+                    results['failed'] += 1
+                else:
+                    results['inprogress'] += 1
             return results
         except Exception as e:
             return results
         finally:
-            s.close() 
+            s.close()
 
     def get_last_job_progress(self, job):
         """ Return last job progress line if exists, else None """
