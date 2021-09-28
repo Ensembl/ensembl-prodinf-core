@@ -1,13 +1,21 @@
 Changelog
 =========
-1.3.1
------
+
+1.4.0 - Ready to be published on PyPI
+-----------------------------------
+- Fix tests and run them with pytest
+- Update some functions and methods
+- Automate test & deploy with Travis
+- Fix setup.py to be PyPI compliant
+
+1.3.1 - Fix typo
+----------------
 - Fix typo in indentation for job_progress retrieval
 
-1.3
----
-- DC Status included from hive
- 
+1.3 - Update Hive to retrieve job status
+----------------------------------------
+- Hive retrieve job status for given job id
+- Enable filtering of metadata job lists in metadata client
 
 1.2 - Updated DatacheckClient submit payload
 --------------------------------------------

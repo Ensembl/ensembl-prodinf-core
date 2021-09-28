@@ -1,4 +1,4 @@
-# .. See the NOTICE file distributed with this work for additional information
+#    See the NOTICE file distributed with this work for additional information
 #    regarding copyright ownership.
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ def load_config_yaml(file_path, strict=False, tag='!ENV'):
     :rtype: dict[str, T]
     See https://gist.github.com/mkaranasou/ba83e25c835a8f7629e34dd7ede01931#file-python_yaml_environment_variables-py
     """
-    pattern = re.compile('.*?\${(\w+)}.*?')
+    pattern = re.compile(r'.*?\${(\w+)}.*?')
     loader = yaml.SafeLoader
 
     # the tag will be used to mark where to start searching for the pattern

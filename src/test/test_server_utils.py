@@ -1,4 +1,4 @@
-# .. See the NOTICE file distributed with this work for additional information
+#    See the NOTICE file distributed with this work for additional information
 #    regarding copyright ownership.
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -13,48 +13,55 @@
 
 import logging
 import unittest
+import os
+import sys
 
+from ensembl.production.core.config import parse_debug_var
 import ensembl.production.core.server_utils as su
 
-logging.basicConfig()
+LOG_LEVEL = logging.DEBUG if parse_debug_var(os.getenv("DEBUG")) else logging.WARNING
 
+logging.basicConfig(
+    stream=sys.stdout,
+    format="%(asctime)s %(levelname)-8s %(name)s: %(message)s",
+    level=LOG_LEVEL,
+)
+logger = logging.getLogger(__name__)
 
 class ServerTest(unittest.TestCase):
-
     def test_status(self):
         status = su.get_status()
-        logging.info(status)
-        self.assertTrue("n_cpus" in status)
-        self.assertTrue("load_1m" in status)
-        self.assertTrue("load_5m" in status)
-        self.assertTrue("load_15m" in status)
-        self.assertTrue("memory_total_m" in status)
-        self.assertTrue("memory_used_m" in status)
-        self.assertTrue("memory_available_m" in status)
+        logger.debug(status)
+        self.assertTrue(status["n_cpus"] >= 1)
+        self.assertTrue(status["load_1m"] >= 0)
+        self.assertTrue(status["load_5m"] >= 0)
+        self.assertTrue(status["load_15m"] >= 0)
+        self.assertTrue(status["memory_total_m"] >= 0)
+        self.assertTrue(status["memory_used_m"] >= 0)
+        self.assertTrue(status["memory_available_m"] >= 0)
         self.assertTrue(status["memory_used_pct"] >= 0)
         self.assertTrue(status["memory_used_pct"] <= 100)
 
     def test_status_dir(self):
         status = su.get_status(dir_name="/")
-        logging.info(status)
-        self.assertTrue("n_cpus" in status)
-        self.assertTrue("load_1m" in status)
-        self.assertTrue("load_5m" in status)
-        self.assertTrue("load_15m" in status)
-        self.assertTrue("memory_total_m" in status)
-        self.assertTrue("memory_used_m" in status)
-        self.assertTrue("memory_available_m" in status)
+        logger.debug(status)
+        self.assertTrue(status["n_cpus"] >= 1)
+        self.assertTrue(status["load_1m"] >= 0)
+        self.assertTrue(status["load_5m"] >= 0)
+        self.assertTrue(status["load_15m"] >= 0)
+        self.assertTrue(status["memory_total_m"] >= 0)
+        self.assertTrue(status["memory_used_m"] >= 0)
+        self.assertTrue(status["memory_available_m"] >= 0)
         self.assertTrue(status["memory_used_pct"] >= 0)
         self.assertTrue(status["memory_used_pct"] <= 100)
-        self.assertTrue("disk_total_g" in status)
-        self.assertTrue("disk_used_g" in status)
-        self.assertTrue("disk_available_g" in status)
+        self.assertTrue(status["disk_total_g"] >= 0)
+        self.assertTrue(status["disk_used_g"] >= 0)
+        self.assertTrue(status["disk_available_g"] >= 0)
         self.assertTrue(status["disk_used_pct"] >= 0)
         self.assertTrue(status["disk_used_pct"] <= 100)
 
 
 class AssertTest(unittest.TestCase):
-
     def test_raises_assert_http_uri(self):
         self.assertRaises(ValueError, su.assert_http_uri, '')
         self.assertRaises(ValueError, su.assert_http_uri, 'invalid_uri')

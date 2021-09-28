@@ -1,4 +1,4 @@
-# .. See the NOTICE file distributed with this work for additional information
+#    See the NOTICE file distributed with this work for additional information
 #    regarding copyright ownership.
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -12,11 +12,9 @@
 
 import logging
 import requests
-import argparse
-import time
 from ensembl.production.core.server_utils import assert_http_uri
 from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.retry import Retry
+from urllib3.util.retry import Retry
 
 
 class RestClient(object):
@@ -37,7 +35,7 @@ class RestClient(object):
     def _make_HTTPAdapter(self):
         retries = Retry(total=3, backoff_factor=1,
                         status_forcelist=[429, 500, 502, 503, 504],
-                        method_whitelist=["GET", "PUT", "POST", "DELETE"])
+                        allowed_methods=["GET", "PUT", "POST", "DELETE"])
         adapter = HTTPAdapter(max_retries=retries)
         return adapter
 
