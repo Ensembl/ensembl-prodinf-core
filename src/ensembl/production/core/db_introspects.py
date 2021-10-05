@@ -36,16 +36,19 @@ def get_table_names(engine, database):
 
 
 def _filter_names(names_list, filters):
-    filtered_names = set()
+    filter_names = set()
+    filter_regexes = []
     if filters:
         try:
-            for filter_re in filters:
-                re.compile(filter_re)
+            for filter_name in filters:
+                filter_regex = '^{}$'.format(filter_name)
+                re.compile(filter_regex)
+                filter_regexes.append(filter_regex)
         except re.error as e:
-            raise ValueError('Invalid name_filter: {}'.format(filter_re)) from e
-        filter_names_re = re.compile('$|^'.join(filters))
-        filtered_names = set(filter(filter_names_re.search, names_list))
-    return filtered_names
+            raise ValueError('Invalid name_filter: {}'.format(filter_name)) from e
+        filter_names_re = re.compile('|'.join(filter_regexes))
+        filter_names = set(filter(filter_names_re.match, names_list))
+    return filter_names
 
 
 def _apply_filters(names_list, incl_filters, skip_filters):

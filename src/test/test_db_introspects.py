@@ -40,6 +40,18 @@ class DBIntrospectsTest(unittest.TestCase):
         result = _apply_filters(names_list, incl_filters=incl_filters, skip_filters=None)
         self.assertSetEqual(set(expected), result)
 
+    def test_apply_filters_incl_filters_no_wildcards(self):
+        names_list = [
+            'species1_core_105_1',
+            'species2_core_105_1',
+            'species3_core_104_2',
+            'species4_core_104_2',
+        ]
+        incl_filters = ['core_105']
+        expected = []
+        result = _apply_filters(names_list, incl_filters=incl_filters, skip_filters=None)
+        self.assertSetEqual(set(expected), result)
+
     def test_apply_filters_incl_filters_and_matches(self):
         names_list = [
             'species1_core_105_1',
@@ -67,6 +79,23 @@ class DBIntrospectsTest(unittest.TestCase):
         skip_filters = ['species2.*']
         expected = [
             'species1_core_105_1',
+            'species4_core_104_2',
+        ]
+        result = _apply_filters(names_list, incl_filters=incl_filters, skip_filters=skip_filters)
+        self.assertSetEqual(set(expected), result)
+
+    def test_apply_filters_incl_filters_and_matches_skip_filters_no_wildcards(self):
+        names_list = [
+            'species1_core_105_1',
+            'species2_core_105_1',
+            'species3_core_104_2',
+            'species4_core_104_2',
+        ]
+        incl_filters = ['.*core_105.*', 'species4_core_104_2']
+        skip_filters = ['species2']
+        expected = [
+            'species1_core_105_1',
+            'species2_core_105_1',
             'species4_core_104_2',
         ]
         result = _apply_filters(names_list, incl_filters=incl_filters, skip_filters=skip_filters)
@@ -115,3 +144,4 @@ class DBIntrospectsTest(unittest.TestCase):
         ]
         result = _apply_filters(names_list, incl_filters=None, skip_filters=skip_filters)
         self.assertSetEqual(set(expected), result)
+
