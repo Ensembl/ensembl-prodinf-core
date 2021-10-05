@@ -1,6 +1,11 @@
 Changelog
 =========
 
+2.0.0 - Change DB Introspect database a table list functions behaviour
+----------------------------------------------------------------------
+- Change `db_introspects` module
+    - `get_database_set()` and `get_table_set()` filters "match" instead of "search"
+
 1.4.0 - Ready to be published on PyPI
 -----------------------------------
 - Fix tests and run them with pytest
