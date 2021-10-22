@@ -23,42 +23,67 @@ class EventClient(RestClient):
     This uses the base RestClient, but all endpoint URIs for checking on submited events
     have process as a path element, so this client combines the job_id and process together
     """
+    def __init__(self, uri):
+        super(EventClient, self).__init__(uri)
 
-    def submit_job(self, event):
-        """Submit an event for processing"""
+    def submit_job(self, payload):
+        """
+        Submit a job using the supplied dict as payload. No checking is carried out on the payload
+        Arguments:
+          payload : job input as dict
+        """
         logging.info("Submitting job")
-        return RestClient.submit_job(self, event)
+        logging.debug(payload)
+        with self._session() as session:
+            r = session.post(f'{self.uri}/submit' , json=payload)
+        if r.status_code != 201:
+            logging.error("failed to submit workflow because: %s", r.text)
+        r.raise_for_status()
+        return r.json()
 
-    def list_jobs(self, process):
-        """List all jobs for a given process"""
+    def list_workflows(self, handover_token=None):
+        """List all Workflows"""
         logging.info("Listing")
-        r = requests.get(self.jobs.format(self.uri) + '/' + process)
+        url = f'{self.uri}/{handover_token}' if handover_token else self.uri
+        r = requests.get(self.uri)
         r.raise_for_status()
         return r.json()
 
-    def delete_job(self, process, job_id, kill=False):
-        return super(EventClient, self).delete_job(process + '/' + str(job_id), kill)
-
-    def retrieve_job_failure(self, process, job_id):
-        return super(EventClient, self).retrieve_job_failure(process + '/' + str(job_id))
-
-    def retrieve_job_email(self, process, job_id):
-        return super(EventClient, self).retrieve_job_email(process + '/' + str(job_id))
-
-    def retrieve_job(self, process, job_id):
-        return super(EventClient, self).retrieve_job(process + '/' + str(job_id))
-
-    def collate_jobs(self, output_file, pattern='.*'):
-        raise AttributeError("Job collation not supported")
-
-    def processes(self):
-        """Retrieve a list of processes that the service can schedule"""
-        r = requests.get(self.uri + 'processes')
+    def stop_workflow(self, payload):
+        """
+        Stop Running Workflow
+        Arguments:
+          payload : {
+                        "handover_token": "3729-jhshs-12929-1mssn",
+                        "job_id": "string",
+                        "pipeline_name": "string"
+                    }
+        """        
+        logging.info("Stop Workflow")
+        logging.debug(payload)
+        with self._session() as session:
+            r = session.post(f'{self.uri}/stop', json=payload)
+        if r.status_code != 201:
+            logging.error("failed to stop workflow because: %s", r.text)
         r.raise_for_status()
         return r.json()
 
-    def events(self):
-        """Retrieve a list of events that the service can handle"""
-        r = requests.get(self.uri + 'events')
+    def restart_workflow(self, payload):
+        """
+        Restart Stopped Workflow
+        Arguments:
+          payload : {
+                        "handover_token": "3729-jhshs-12929-1mssn",
+                        "restart_type": "BEEKEEPER"
+                    }
+        """   
+        logging.info("Stop Workflow")
+        logging.debug(payload)
+        with self._session() as session:
+            r = session.post(f'{self.uri}/restart', json=payload)
+        if r.status_code != 201:
+            logging.error("failed to restart workflow because: %s", r.text)
         r.raise_for_status()
-        return r.json()
+        return r.json() 
+
+
