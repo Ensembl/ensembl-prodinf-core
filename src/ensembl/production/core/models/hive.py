@@ -478,6 +478,15 @@ class HiveInstance:
             )
         return list(map(lambda job: self._get_result_for_job(job, session), jobs))
 
+    def delete_job_by_id(self, job_id, child=False):
+        """Delete a job from the hive database given its id"""
+        with Session() as session:
+            return self._delete_job_by_id(job_id, session, child)
+
+    def _delete_job_by_id(self, job_id, session, child=False):
+        job = self._get_job_by_id(job_id, session)
+        return self._delete_job(job, session, child)
+
     def delete_job(self, job, child=False):
         """Delete a job from the hive database
            If child flag turn on, try to delete child job if exist
