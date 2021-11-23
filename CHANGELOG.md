@@ -1,6 +1,11 @@
 Changelog
 =========
 
+2.0.1 - Dependencies updates
+----------------------------
+- Requests version range instead of "Compatible" (>=2.4,<3)
+- PyYAML version changed to comply with ensembl-py (PyYAML~=6.0)
+
 2.0.0 - Change DB Introspect database a table list functions behaviour
 ----------------------------------------------------------------------
 - Change `db_introspects` module
