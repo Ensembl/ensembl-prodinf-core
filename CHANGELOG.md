@@ -1,15 +1,22 @@
 Changelog
 =========
 
+2.0.2 - Fixed Typo
+------------------
+
+- Fixed typo in `hive.py` module causing error in DC jobs status retrieval.
+
 2.0.1 - Dependencies updates
 ----------------------------
+
 - Requests version range instead of "Compatible" (>=2.4,<3)
 - PyYAML version changed to comply with ensembl-py (PyYAML~=6.0)
 
 2.0.0 - Change DB Introspect database a table list functions behaviour
 ----------------------------------------------------------------------
+
 - Change `db_introspects` module
-    - `get_database_set()` and `get_table_set()` filters "match" instead of "search"
+  - `get_database_set()` and `get_table_set()` filters "match" instead of "search"
 
 1.4.0 - Ready to be published on PyPI
 -----------------------------------
