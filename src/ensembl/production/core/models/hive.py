@@ -13,8 +13,8 @@
 import json
 import logging
 import re
-import time
 
+import time
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, func, and_
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declarative_base
@@ -242,7 +242,6 @@ class HiveInstance:
         finally:
             s.close()
 
-
     def create_job(self, analysis_name, input_data):
         """
         Create a job for the supplied analysis and input hash
@@ -335,22 +334,23 @@ class HiveInstance:
         """
         s = Session()
         try:
-            results = {'total': 0, 'inprogress': 0, 'completed': 0, 'failed': 0 }
+            results = {'total': 0, 'inprogress': 0, 'completed': 0, 'failed': 0}
             job_pattern = f"{job_id},%"
 
             if analysis_id:
-                jobs = s.query(Job).filter(and_(Job.param_id_stack.ilike(job_pattern), Job.analysis_id == analysis_id ) ).all()
+                jobs = s.query(Job).filter(
+                    and_(Job.param_id_stack.ilike(job_pattern), Job.analysis_id == analysis_id)).all()
             else:
-                jobs = s.query(Job).filter(Job.param_id_stack.ilike(job_pattern) ).all()
+                jobs = s.query(Job).filter(Job.param_id_stack.ilike(job_pattern)).all()
 
             for job in jobs:
-              results['total'] += 1
-              if job.status == 'DONE':
-                results['completed'] += 1
-              elif job.status == 'FAILED':
-                results['failed'] += 1
-              else:
-                results['inprogress'] += 1
+                results['total'] += 1
+                if job.status == 'DONE':
+                    results['completed'] += 1
+                elif job.status == 'FAILED':
+                    results['failed'] += 1
+                else:
+                    results['inprogress'] += 1
             return results
         except Exception as e:
             return results
