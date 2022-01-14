@@ -41,3 +41,4 @@ class TestPerlParsing(unittest.TestCase):
         perl_string = '{"testKey" => "testValue\@testhost"}'
         data_python = perl_string_to_python(perl_string)
         self.assertEqual(len(data_python.keys()), 1)
+        self.assertEqual(data_python['testKey'], 'testValue@testhost')
