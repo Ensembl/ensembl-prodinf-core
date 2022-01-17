@@ -39,6 +39,7 @@ class TestPerlParsing(unittest.TestCase):
     def test_compat_import(self):
         from ensembl.production.core.utils import perl_string_to_python
         perl_string = '{"testKey" => "testValue\@testhost"}'
-        data_python = perl_string_to_python(perl_string)
-        self.assertEqual(len(data_python.keys()), 1)
-        self.assertEqual(data_python['testKey'], 'testValue@testhost')
+        with self.assertWarns(DeprecationWarning):
+            data_python = perl_string_to_python(perl_string)
+            self.assertEqual(len(data_python.keys()), 1)
+            self.assertEqual(data_python['testKey'], 'testValue@testhost')

@@ -13,9 +13,11 @@
 
 import logging
 import os
+import pathlib
 from email.mime.text import MIMEText
 from smtplib import SMTP
 
+import deprecation
 import pwd
 
 # retro compatibility, force import methods from actual perl_utils module
@@ -25,10 +27,36 @@ from ensembl.production.core.perl_utils import \
     escape_perl_string as pescape_perl_string, \
     list_to_perl_string as plist_to_perl_string
 
-perl_string_to_python = pperl_string_to_python
-dict_to_perl_string = pdict_to_perl_string
-list_to_perl_string = plist_to_perl_string
-escape_perl_string = pescape_perl_string
+here = pathlib.Path(__file__).parent.parent.parent.parent.parent.resolve()
+__version__ = (here / 'VERSION').read_text(encoding='utf-8').strip()
+
+
+@deprecation.deprecated(deprecated_in="2.0.3", removed_in="3.0.0",
+                        current_version=__version__,
+                        details="Use the ensembl.production.core.perl_utils instead")
+def perl_string_to_python(s):
+    return pperl_string_to_python(s)
+
+
+@deprecation.deprecated(deprecated_in="2.0.3", removed_in="3.0.0",
+                        current_version=__version__,
+                        details="Use the ensembl.production.core.perl_utils instead")
+def dict_to_perl_string(input_dict):
+    return pdict_to_perl_string(input_dict)
+
+
+@deprecation.deprecated(deprecated_in="2.0.3", removed_in="3.0.0",
+                        current_version=__version__,
+                        details="Use the ensembl.production.core.perl_utils instead")
+def list_to_perl_string(input_list):
+    return plist_to_perl_string(input_list)
+
+
+@deprecation.deprecated(deprecated_in="2.0.3", removed_in="3.0.0",
+                        current_version=__version__,
+                        details="Use the ensembl.production.core.perl_utils instead")
+def escape_perl_string(s):
+    return pescape_perl_string(s)
 
 
 def get_default_user():
