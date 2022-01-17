@@ -33,28 +33,28 @@ __version__ = (here / 'VERSION').read_text(encoding='utf-8').strip()
 
 @deprecation.deprecated(deprecated_in="2.0.3", removed_in="3.0.0",
                         current_version=__version__,
-                        details="Use the ensembl.production.core.perl_utils instead")
+                        details="Use the ensembl.production.core.perl_utils.perl_string_to_python instead")
 def perl_string_to_python(s):
     return pperl_string_to_python(s)
 
 
 @deprecation.deprecated(deprecated_in="2.0.3", removed_in="3.0.0",
                         current_version=__version__,
-                        details="Use the ensembl.production.core.perl_utils instead")
+                        details="Use the ensembl.production.core.perl_utils.dict_to_perl_string instead")
 def dict_to_perl_string(input_dict):
     return pdict_to_perl_string(input_dict)
 
 
 @deprecation.deprecated(deprecated_in="2.0.3", removed_in="3.0.0",
                         current_version=__version__,
-                        details="Use the ensembl.production.core.perl_utils instead")
+                        details="Use the ensembl.production.core.perl_utils.list_to_perl_string instead")
 def list_to_perl_string(input_list):
     return plist_to_perl_string(input_list)
 
 
 @deprecation.deprecated(deprecated_in="2.0.3", removed_in="3.0.0",
                         current_version=__version__,
-                        details="Use the ensembl.production.core.perl_utils instead")
+                        details="Use the ensembl.production.core.perl_utils.escape_perl_string instead")
 def escape_perl_string(s):
     return pescape_perl_string(s)
 
