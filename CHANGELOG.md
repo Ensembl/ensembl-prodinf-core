@@ -1,5 +1,9 @@
 Changelog
 =========
+2.0.3 - Fixed perl String parsing
+---------------------------------
+
+- Fixed issues with hidden chars in perl strings
 
 2.0.2 - Fixed Typo
 ------------------

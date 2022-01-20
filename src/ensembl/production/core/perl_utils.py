@@ -11,6 +11,7 @@
 #    limitations under the License.
 
 import json
+import re
 
 
 def dict_to_perl_string(input_dict):
@@ -21,7 +22,7 @@ def dict_to_perl_string(input_dict):
         t = type(v).__name__
         if t == 'str':
             pairs.append("\"%s\" => \"%s\"" % (k, escape_perl_string(v)))
-        elif (t == 'int'):
+        elif t == 'int':
             pairs.append("\"%s\" => %d" % (k, v))
         elif t == 'float':
             pairs.append("\"%s\" => %f" % (k, v))
@@ -44,7 +45,7 @@ def list_to_perl_string(input_list):
         t = type(v).__name__
         if t == 'str':
             elems.append("\"%s\"" % escape_perl_string(v))
-        elif (t == 'int'):
+        elif t == 'int':
             elems.append("%d" % v)
         elif t == 'float':
             elems.append("%f" % v)
@@ -59,12 +60,14 @@ def list_to_perl_string(input_list):
 
 def escape_perl_string(v):
     """Escape characters with special meaning in perl"""
-    return str(v).replace("$", "\\$").replace("\"", "\\\"").replace("@", "\\@")
+    s = str(v).replace("$", "\\$").replace("\"", "\\\"").replace("@", "\\@")
+    return re.sub('[\n\t\r]+', ' ', s)
 
 
 def perl_string_to_python(s):
     """Parse a Perl hash string into a Python dict"""
     s = s.replace("=>", ":").replace("\\$", "$").replace("\\@", "@")
+    s = re.sub('[\n\t\r]+', ' ', s)
     try:
         res = json.loads(s)
     except json.JSONDecodeError as e:
