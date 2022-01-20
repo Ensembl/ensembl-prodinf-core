@@ -61,13 +61,13 @@ def list_to_perl_string(input_list):
 def escape_perl_string(v):
     """Escape characters with special meaning in perl"""
     s = str(v).replace("$", "\\$").replace("\"", "\\\"").replace("@", "\\@")
-    return re.sub('[\n\t\r]+', '', s)
+    return re.sub('[\n\t\r]+', ' ', s)
 
 
 def perl_string_to_python(s):
     """Parse a Perl hash string into a Python dict"""
     s = s.replace("=>", ":").replace("\\$", "$").replace("\\@", "@")
-    s = re.sub('[\n\t\r]+', '', s)
+    s = re.sub('[\n\t\r]+', ' ', s)
     try:
         res = json.loads(s)
     except json.JSONDecodeError as e:
