@@ -12,6 +12,7 @@
 
 import logging
 import re
+import sys
 from datetime import datetime
 
 import requests
@@ -38,13 +39,16 @@ class HandoverClient(object):
           spec : dict containing keys `src_uri`, `comment` and `contact`
         #TODO move this onto submit_job standard from parent class
         """
-        assert_mysql_db_uri(spec['src_uri'])
-        assert_email(spec['contact'])
-        logging.info("Submitting {} for handover".format(spec['src_uri']))
-        logging.debug(spec)
-        r = requests.post(self.handovers.format(self.uri), json=spec)
-        r.raise_for_status()
-        return r.json()
+        try:
+            assert_mysql_db_uri(spec['src_uri'])
+            assert_email(spec['contact'])
+            logging.info("Submitting {} for handover".format(spec['src_uri']))
+            logging.debug(spec)
+            r = requests.post(self.handovers.format(self.uri), json=spec)
+            r.raise_for_status()
+            return r.json()
+        except Exception as e : 
+            raise RuntimeError(r.text)
 
     def list_handovers(self):
         """
