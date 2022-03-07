@@ -12,7 +12,6 @@
 
 import logging
 import re
-import sys
 from datetime import datetime
 
 import requests
