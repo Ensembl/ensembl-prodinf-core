@@ -47,7 +47,8 @@ class HandoverClient(object):
             r.raise_for_status()
             return r.json()
         except Exception as e : 
-            raise RuntimeError(r.text)
+            error_msg = r.json()
+            raise RuntimeError(error_msg)
 
     def list_handovers(self):
         """
