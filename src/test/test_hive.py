@@ -47,6 +47,11 @@ class HiveTest(unittest.TestCase):
         logger.info("Connecting to hive test sqlite database %s", here/DB_FILENAME)
         self.hive = HiveInstance(f"sqlite:///{here/DB_FILENAME}")
 
+    def tearDown(self):
+        """Remove test database file"""
+        logger.info("Removing test sqlite database")
+        os.remove(here/DB_FILENAME)
+
     def test_create_job(self):
         """Basic test case for creating a new job"""
         job1 = self.hive.create_job('TestRunnable', {'x': 'y', 'a': 'b'})
@@ -121,10 +126,12 @@ class HiveTest(unittest.TestCase):
         jobs = self.hive.get_all_results('TestRunnable')
         self.assertEqual(1, len(jobs), "Checking we got just one job")
 
-    def tearDown(self):
-        """Remove test database file"""
-        logger.info("Removing test sqlite database")
-        os.remove(here/DB_FILENAME)
+    def test_delete_job(self):
+        job = self.hive.create_job('TestRunnable', {'x': 'y', 'a': 'b'})
+        job_id = self.hive.get_job_by_id(job.job_id).job_id
+        self.assertEqual(job.job_id, job_id)
+        self.hive.delete_job(job)
+        self.assertRaises(ValueError, self.hive.get_job_by_id, job.job_id)
 
 
 if __name__ == '__main__':
