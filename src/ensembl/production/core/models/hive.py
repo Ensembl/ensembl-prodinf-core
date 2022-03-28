@@ -411,8 +411,7 @@ class HiveInstance:
                 if child_status != 'complete':
                     return child_status
             return 'complete'
-        else:
-            return 'incomplete'
+        return 'incomplete'
 
     def get_job_child(self, job):
         """ Get child job for a given parent job """
