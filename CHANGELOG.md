@@ -1,5 +1,13 @@
 Changelog
 =========
+
+2.0.4 - bug fixes
+-----------------
+- Better error display from failed handover client submission
+- Better handling HTTRequestError
+- Prevent HiveInstance from using nested sessions
+- Update SQL Alchemy version and SQL Alchemy-utils
+
 2.0.3 - Fixed perl String parsing
 ---------------------------------
 
