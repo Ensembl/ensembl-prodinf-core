@@ -16,11 +16,10 @@ import re
 
 
 @lru_cache(maxsize=None)
-def get_engine(hostname, port='3306', user='ensro', password=''):
-    uri = 'mysql://{}:{}@{}:{}'.format(user,
-                                       password,
-                                       hostname,
-                                       port)
+def get_engine(hostname, port='3306', user='ensro', password='', database=''):
+    uri = f'mysql://{user}:{password}@{hostname}:{port}'
+    if database != '':
+        uri += f'/{database}'
     return sa.create_engine(uri, pool_recycle=3600)
 
 
@@ -59,9 +58,7 @@ def _apply_filters(names_list, incl_filters, skip_filters):
     return names.difference(skip_names)
 
 
-def get_database_set(
-        hostname, port, user='ensro', password='', incl_filters=None, skip_filters=None
-):
+def get_database_set(hostname, port, user='ensro', password='', incl_filters=None, skip_filters=None):
     try:
         db_engine = get_engine(hostname, port, user, password)
     except RuntimeError as e:
@@ -70,9 +67,7 @@ def get_database_set(
     return _apply_filters(database_list, incl_filters, skip_filters)
 
 
-def get_table_set(
-        hostname, port, database, user='ensro', password='', incl_filters=None, skip_filters=None
-):
+def get_table_set(hostname, port, database, user='ensro', password='', incl_filters=None, skip_filters=None):
     try:
         db_engine = get_engine(hostname, port, user, password)
     except RuntimeError as e:
@@ -80,3 +75,13 @@ def get_table_set(
     table_list = get_table_names(db_engine, database)
     return _apply_filters(table_list, incl_filters, skip_filters)
 
+
+def get_table_engines(hostname, port, database, user='ensro', password=''):
+    try:
+        db_engine = get_engine(hostname, port, user, password, database)
+        with db_engine.connect() as connection:
+            rp = connection.exec_driver_sql("SHOW TABLE STATUS")
+            # table_name => table_engine
+            return {r[0]: r[1] for r in rp}
+    except RuntimeError as e:
+        raise ValueError('Invalid hostname: {} or port: {}'.format(hostname, port)) from e
