@@ -13,7 +13,8 @@ import unittest
 
 from ensembl.production.core.es import ElasticsearchConnectionManager
 
-#TODO ADD more test with proper config in gitlab
+
+# TODO ADD more test with proper config in gitlab
 class EsTest(unittest.TestCase):
     def test_es_exception(self):
         with self.assertRaises(RuntimeError) as expected:
