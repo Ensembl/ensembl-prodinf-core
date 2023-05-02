@@ -39,9 +39,16 @@ class RestClient(object):
         adapter = HTTPAdapter(max_retries=retries)
         return adapter
 
-    def _session(self):
+    def _session(self, use_ssl=False):
         http = requests.Session()
-        http.mount("http://", self._http_adapter)
+        if use_ssl:
+            http.mount("https://", self._http_adapter)
+        else:
+            http.mount("http://", self._http_adapter)
+        http.headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
         return http
 
     def submit_job(self, payload):
