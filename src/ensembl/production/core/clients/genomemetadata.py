@@ -17,7 +17,7 @@ from ensembl.production.core.utils import json_decode_error_context
 class GenomeMetadataRestClient(RestClient):
     """
        Client for interacting with the Ensembl metadata REST API.
-       """
+    """
 
     dataset_endpoint = '{}api/genome_metadata/datasets/'
     dataset_uuid_endpoint = '{}api/genome_metadata/datasets/{}'
