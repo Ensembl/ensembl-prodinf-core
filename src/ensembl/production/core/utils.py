@@ -13,11 +13,12 @@
 
 import logging
 import os
+import pathlib
 from email.mime.text import MIMEText
 from smtplib import SMTP
 
 import deprecation
-import pkg_resources
+from importlib.metadata import version
 import pwd
 
 # retro compatibility, force import methods from actual perl_utils module
@@ -27,8 +28,9 @@ from ensembl.production.core.perl_utils import \
     escape_perl_string as pescape_perl_string, \
     list_to_perl_string as plist_to_perl_string
 
-__version__ = pkg_resources.require("ensembl-prodinf-core")[0].version
+here = pathlib.Path(__file__).parents[4].resolve()
 
+__version__ = version('ensembl-prodinf-core')
 
 @deprecation.deprecated(deprecated_in="2.0.2", removed_in="3.0.0",
                         current_version=__version__,
