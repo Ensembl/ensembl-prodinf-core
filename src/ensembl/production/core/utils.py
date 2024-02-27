@@ -18,6 +18,7 @@ from email.mime.text import MIMEText
 from smtplib import SMTP
 
 import deprecation
+from importlib.metadata import version
 import pwd
 
 # retro compatibility, force import methods from actual perl_utils module
@@ -29,8 +30,7 @@ from ensembl.production.core.perl_utils import \
 
 here = pathlib.Path(__file__).parents[4].resolve()
 
-__version__ = version = (here / 'VERSION').read_text(encoding='utf-8').strip()
-
+__version__ = version('ensembl-prodinf-core')
 
 @deprecation.deprecated(deprecated_in="2.0.2", removed_in="3.0.0",
                         current_version=__version__,

@@ -39,7 +39,7 @@ setup(
     author_email='mchakiachvili@ebi.ac.uk,jallen@ebi.ac.uk,ldrf@ebi.ac.uk,vkaikala@ebi.ac.uk',
     maintainer='Ensembl Production Team',
     maintainer_email='ensembl-production@ebi.ac.uk',
-    python_requires='>=3.7',
+    python_requires='>=3.8',
     install_requires=import_requirements(),
     classifiers=[
         'Development Status :: 5 - Production/Stable',
