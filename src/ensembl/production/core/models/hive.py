@@ -59,7 +59,7 @@ class Beekeeper(Base):
     loop_until = Column(String)
 
     def __repr__(self):
-        return "<beekeeper(beekeeper_id='%s', cause_of_death='%s')>" % (
+        return "<Beekeeper(beekeeper_id='%s', cause_of_death='%s')>" % (
             self.beekeeper_id, self.cause_of_death)
 
 
