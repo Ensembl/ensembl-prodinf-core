@@ -51,6 +51,18 @@ class AnalysisData(Base):
             self.analysis_data_id, self.data)
 
 
+class Beekeeper(Base):
+    __tablename__ = 'beekeeper'
+
+    beekeeper_id = Column(Integer, primary_key=True)
+    cause_of_death = Column(String)
+    loop_until = Column(String)
+
+    def __repr__(self):
+        return "<Beekeeper(beekeeper_id='%s', cause_of_death='%s')>" % (
+            self.beekeeper_id, self.cause_of_death)
+
+
 class Result(Base):
     __tablename__ = 'result'
 
