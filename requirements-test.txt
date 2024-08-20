@@ -1,4 +1,4 @@
 -r requirements.txt
 pytest
 elasticsearch>=6.8.1,<7.0.0
-coverage[toml]
+coverage
