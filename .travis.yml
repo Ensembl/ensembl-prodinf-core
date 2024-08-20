@@ -7,6 +7,8 @@ install:
 - pip install .
 - pip install -r requirements-test.txt
 - export PYTHONPATH=$PYTHONPATH:$PWD/src
+- pwd
+- ls 
 
 script:
 - coverage run -m pytest src/tests
