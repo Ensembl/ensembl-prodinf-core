@@ -81,14 +81,14 @@ disable = [
     "wildcard-import",
 ]
 [tool.mypy]
-mypy_path = "src/ensembl"
+mypy_path = "src/test"
 explicit_package_bases = true
 ignore_missing_imports = true
 show_error_codes = true
 warn_unused_configs = true
 
 [tool.pytest.ini_options]
-testpaths = ["src/tests"]
+testpaths = ["src/test"]
 log_cli_level = "DEBUG"
 addopts = [
     "--import-mode=importlib",
@@ -116,4 +116,4 @@ exclude_also = [
 ]
 
 [tool.coverage.run]
-source = ["src/ensembl"]
+source = ["src/test"]

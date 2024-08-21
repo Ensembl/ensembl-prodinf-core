@@ -11,5 +11,5 @@ install:
 - ls 
 
 script:
-- coverage run -m pytest src/tests
+- coverage run -m pytest src/test
 - coverage report -m
