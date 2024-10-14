@@ -1,11 +1,15 @@
 language: python
+dist: jammy
 python:
-- "3.8"
+- "3.10"
 
 install:
 - pip install .
 - pip install -r requirements-test.txt
+- export PYTHONPATH=$PYTHONPATH:$PWD/src
+- pwd
+- ls 
 
 script:
-- coverage run -m pytest
+- coverage run -m pytest src/test
 - coverage report -m
