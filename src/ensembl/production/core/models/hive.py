@@ -63,6 +63,26 @@ class Beekeeper(Base):
             self.beekeeper_id, self.cause_of_death)
 
 
+class Progress(Base):
+    __tablename__ = 'progress'
+    
+    analysis_name_and_id = Column(String(268), nullable=True)
+    resource_class = Column(String(255), nullable=True)
+    status = Column(Enum(
+        'SEMAPHORED', 'READY', 'CLAIMED', 'COMPILATION', 'PRE_CLEANUP',
+        'FETCH_INPUT', 'RUN', 'WRITE_OUTPUT', 'POST_HEALTHCHECK', 'POST_CLEANUP',
+        'DONE', 'FAILED', 'PASSED_ON',
+        name='status_enum'
+    ), nullable=True, default='READY')
+    retry_count = Column(Integer, nullable=True, default=0)
+    cnt = Column(BigInteger, nullable=False, default=0)
+    example_job_id = Column(Integer, nullable=True)
+    
+    def __repr__(self):
+        return (f"<Progress(analysis_name_and_id={self.analysis_name_and_id}, resource_class={self.resource_class}, "
+                f"status={self.status}, retry_count={self.retry_count}, cnt={self.cnt}, example_job_id={self.example_job_id})>")
+
+
 class Result(Base):
     __tablename__ = 'result'
 
