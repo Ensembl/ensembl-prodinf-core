@@ -2,13 +2,14 @@ language: python
 dist: jammy
 python:
 - "3.10"
+- "3.11"
+- "3.12"
 
 install:
-- pip install .
-- pip install -r requirements-test.txt
+- pip install .[test]
 - export PYTHONPATH=$PYTHONPATH:$PWD/src
 - pwd
-- ls 
+- ls
 
 script:
 - coverage run -m pytest src/test

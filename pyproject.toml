@@ -10,16 +10,29 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = [
+    "setuptools",
+    "wheel",
+]
+
 [project]
 name = "ensembl-prodinf-core"
-description = "# Ensembl Production Shared libraries used across other production python packages"
-requires-python = ">= 3.10"
-version="3.0.0"
+description = "Ensembl Production Shared libraries used across other production python packages"
+requires-python = ">=3.10"
+dynamic = ["version"]
 readme = "README.md"
 authors = [
-    {name = "Ensembl", email = "ensembl-production@ebi.ac.uk"},
+    { name = "Marc Chakiachvili", email = "mchakiachvili@ebi.ac.uk" },
+    { name = "James Allen", email = "jallen@ebi.ac.uk" },
+    { name = "Luca Da Rin Fioretto", email = "ldrf@ebi.ac.uk" },
+    { name = "Vinay Kaikala", email = "vkaikala@ebi.ac.uk" },
 ]
-license = {text = "Apache License 2.0"}
+maintainers = [
+    { name = "Ensembl Production Team", email = "ensembl-production@ebi.ac.uk" },
+]
+license = { text = "Apache License 2.0" }
 keywords = [
     "ensembl",
     "production",
@@ -38,8 +51,25 @@ classifiers = [
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Topic :: Utilities",
     "Topic :: System :: Distributed Computing",
+]
+# SQLAlchemy 1.4 has no Python 3.12 support (classifiers cap at 3.11); bumped to
+# the 2.x line - declarative_base import and raw-string session.execute() calls
+# were updated in src/ accordingly. elasticsearch bumped from the 6.8.2-era
+# client (Python <=3.6 only) to 8.16+, and es.py was rewritten for its API
+# (basic_auth, URL-style hosts, client.close()) - verify against your ES server.
+dependencies = [
+    "certifi>=2020.12.5",
+    "deprecation~=2.1.0",
+    "kombu>=5.4.0",
+    "PyYAML>=6.0.2",
+    "requests>=2.25,<3",
+    "SQLAlchemy~=2.0",
+    "SQLAlchemy-Utils>=0.42.0",
+    "urllib3>=2.2.0",
+    "elasticsearch>=8.16,<9.0",
 ]
 
 [project.urls]
@@ -47,22 +77,21 @@ Homepage = "https://www.ensembl.org"
 Repository = "https://github.com/Ensembl/ensembl-prodinf-core"
 Issues = "https://github.com/Ensembl/ensembl-prodinf-core/issues"
 
-#[project.scripts]
-#core-scripts = ""
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-mock",
+    "coverage",
+]
 
 [tool.setuptools]
-package-dir = {"" = "src"}
+package-dir = { "" = "src" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
-[build-system]
-build-backend = "setuptools.build_meta"
-requires = [
-    "setuptools",
-    "setuptools-scm",
-    "wheel",
-]
+[tool.setuptools.dynamic]
+version = { attr = "_version.__version__" }
 
 [tool.black]
 line-length = 110

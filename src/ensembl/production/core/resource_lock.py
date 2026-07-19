@@ -14,10 +14,9 @@
 import datetime
 import logging
 
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey, Enum
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey, Enum, text
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 
 logging.basicConfig()
 
@@ -391,9 +390,9 @@ class ResourceLocker:
     def _lock_db(self, session):
         """Utility to obtain a lock over the MySQL tables to ensure no race condition"""
         if (self.url.startswith('mysql')):
-            session.execute('lock table client write, resource write, resource_lock write')
+            session.execute(text('lock table client write, resource write, resource_lock write'))
 
     def _unlock_db(self, session):
         """Utility to obtain release a lock over the MySQL tables"""
         if (self.url.startswith('mysql')):
-            session.execute('unlock tables')
+            session.execute(text('unlock tables'))

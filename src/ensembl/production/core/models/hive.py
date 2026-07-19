@@ -17,8 +17,7 @@ import re
 import time
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, func, and_
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship, joinedload
+from sqlalchemy.orm import declarative_base, sessionmaker, relationship, joinedload
 
 from ensembl.production.core.perl_utils import dict_to_perl_string, perl_string_to_python
 
