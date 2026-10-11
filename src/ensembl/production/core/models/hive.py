@@ -15,14 +15,14 @@ import logging
 import re
 
 import time
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, func, and_
+from sqlalchemy import create_engine, Column, Integer, BigInteger, String, Enum, ForeignKey, func, and_
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship, joinedload
 
 from ensembl.production.core.perl_utils import dict_to_perl_string, perl_string_to_python
 
-__all__ = ['Result', 'LogMessage', 'Job', 'HiveInstance', 'Analysis']
+__all__ = ['Result', 'LogMessage', 'Job', 'HiveInstance', 'Analysis', 'Progress']
 
 Base = declarative_base()
 
@@ -65,16 +65,16 @@ class Beekeeper(Base):
 
 class Progress(Base):
     __tablename__ = 'progress'
-    
-    analysis_name_and_id = Column(String(268), nullable=True)
-    resource_class = Column(String(255), nullable=True)
+
+    analysis_name_and_id = Column(String(268), primary_key=True)
+    resource_class = Column(String(255), primary_key=True)
     status = Column(Enum(
         'SEMAPHORED', 'READY', 'CLAIMED', 'COMPILATION', 'PRE_CLEANUP',
         'FETCH_INPUT', 'RUN', 'WRITE_OUTPUT', 'POST_HEALTHCHECK', 'POST_CLEANUP',
         'DONE', 'FAILED', 'PASSED_ON',
         name='status_enum'
-    ), nullable=True, default='READY')
-    retry_count = Column(Integer, nullable=True, default=0)
+    ), primary_key=True)
+    retry_count = Column(Integer, primary_key=True)
     cnt = Column(BigInteger, nullable=False, default=0)
     example_job_id = Column(Integer, nullable=True)
     
